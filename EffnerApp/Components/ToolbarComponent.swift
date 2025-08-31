@@ -26,6 +26,15 @@ struct ToolbarComponent: ToolbarContent {
                         }
                         .id(className) // Set the ID for scrolling
                     }
+                    Button(action: {
+                        selectedClass = "test"
+                        UserSession.shared.user?.classA = "test"
+                    }) {
+                        if selectedClass == "test" {
+                            Image(systemName: "checkmark")
+                        }
+                        Text("test")
+                    }
                 }
             } label: {
                 Text(selectedClass)

@@ -15,46 +15,45 @@ struct ExamsView: View {
 
     init(isPreview: Bool = false) {
         if isPreview {
-            let dummyExams = ExamsResponse(
-                className: "Preview Class",
-                exams: [
-                    Exam(id: "1", date: "01.08.2025", date2: nil, name: "Mathematik", course: "Mathe 101"),
-                    Exam(id: "2", date: "15.09.2025", date2: nil, name: "Physik", course: "Physik 202"),
-                    Exam(id: "3", date: "01.10.2025", date2: nil, name: "Chemie", course: "Chemie 303")
-                ]
-            )
-            examsCache.saveExams(dummyExams)
+            examsCache.saveExams(MockExam.mockExams)
         }
     }
 
     var body: some View {
         NavigationStack {
-            Group {
-                if examsCache.cachedExamResponse.exams.isEmpty {
-                    List(0..<10, id: \.self) { _ in
-                        ExamSkeletonView()
-                    }
-                    .redacted(reason: .placeholder)
-                } else {
-                    List {
-                        Section(header: SeparatorView()) {
-                            ForEach(examsCache.cachedExamResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
-                                ExamRowView(exam: exam)
-                            }
+            ScrollViewReader { proxy in
+                Group {
+                    if examsCache.cachedExamResponse.exams.isEmpty {
+                        List(0..<10, id: \.self) { _ in
+                            ExamSkeletonView()
                         }
-
-                        Section(header: SeparatorView(isPast: false)) {
-                            ForEach(examsCache.cachedExamResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
-                                ExamRowView(exam: exam)
+                        .redacted(reason: .placeholder)
+                    } else {
+                        List {
+                            Section(header: SeparatorView()) {
+                                ForEach(examsCache.cachedExamResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
+                                    ExamRowView(exam: exam)
+                                }
+                            }
+                            .id("pastExams")
+                            
+                            Section(header: SeparatorView(isPast: false)) {
+                                ForEach(examsCache.cachedExamResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
+                                    ExamRowView(exam: exam)
+                                }
+                                .id("futureExams")
                             }
                         }
                     }
                 }
-            }
-            .navigationTitle("Klausuren")
-            .toolbarTitleDisplayMode(.inlineLarge)
-            .toolbar {
-                ToolbarComponent()
+                .onAppear {
+                    proxy.scrollTo("futureExams", anchor: .top)
+                }
+                .navigationTitle("Klausuren")
+                .toolbarTitleDisplayMode(.inlineLarge)
+                .toolbar {
+                    ToolbarComponent()
+                }
             }
         }
     }
@@ -115,15 +114,13 @@ struct SeparatorView: View {
             if isPast {
                 Text("Vergangene Klausuren")
                     .font(.headline)
-                    .foregroundColor(.gray)
             } else {
                 Text("Zukünftige Klausuren")
                     .font(.headline)
-                    .foregroundColor(.gray)
             }
         }
         .padding(.vertical, 4)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemGroupedBackground))
     }
 }

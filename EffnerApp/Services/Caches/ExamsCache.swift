@@ -42,6 +42,11 @@ class ExamsCache: ObservableObject {
         if(UserSession.shared.user == nil || !UserSession.shared.user!.isAuthorized) {
             return
         }
+        if(UserSession.shared.user!.classA == "test") {
+            self.saveExams(MockExam.mockExams)
+            print("Exams cache refreshed with mock data.")
+            return
+        }
         
         let examsService = ExamsService()
         

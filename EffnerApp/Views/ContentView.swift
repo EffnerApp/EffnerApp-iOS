@@ -9,27 +9,30 @@ import SwiftUI
 
 struct SecondView: View {
     var body: some View {
-        VStack {
-            Text("Second View")
-                .font(.largeTitle)
-        }
-    }
-}
-
-struct ThirdView: View {
-    var body: some View {
-        VStack {
-            Text("Third View")
-                .font(.largeTitle)
+        NavigationStack {
+            HStack {
+                Text("Second View")
+            }
+            .navigationTitle("Second")
+            .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbar {
+                ToolbarComponent()
+            }
         }
     }
 }
 
 struct FourthView: View {
     var body: some View {
-        VStack {
-            Text("Fourth View")
-                .font(.largeTitle)
+        NavigationStack {
+            Group {
+                Text("Fourth View")
+            }
+            .navigationTitle("Fourth")
+            .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbar {
+                ToolbarComponent()
+            }
         }
     }
 }
@@ -51,7 +54,7 @@ struct ContentView: View {
                 ExamsView()
                     .tabItem {
                         Image(systemName: "graduationcap")
-                        Text("Exams")
+                        Text("Klausuren")
                     }
                 FourthView()
                     .tabItem {

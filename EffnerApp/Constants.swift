@@ -7,5 +7,5 @@
 struct Constants {
     // API Base URL
     static let baseURL : String = "https://api.effner.app/v3"
-    
+    static let v4URL: String = "https://api.effner.app/v4"
 }

@@ -7,21 +7,6 @@
 
 import SwiftUI
 
-struct SecondView: View {
-    var body: some View {
-        NavigationStack {
-            HStack {
-                Text("Second View")
-            }
-            .navigationTitle("Second")
-            .toolbarTitleDisplayMode(.inlineLarge)
-            .toolbar {
-                ToolbarComponent()
-            }
-        }
-    }
-}
-
 struct FourthView: View {
     var body: some View {
         NavigationStack {
@@ -46,10 +31,10 @@ struct ContentView: View {
                         Image(systemName: "house")
                         Text("Home")
                     }
-                SecondView()
+                SubstitutionsView()
                     .tabItem {
-                        Image(systemName: "2.circle")
-                        Text("Second")
+                        Image(systemName: "arrow.trianglehead.branch")
+                        Text("Vertretungen")
                     }
                 ExamsView()
                     .tabItem {

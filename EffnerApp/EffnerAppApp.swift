@@ -12,6 +12,7 @@ struct EffnerAppApp: App {
     @State private var session = UserSession.shared
     @State private var exams = ExamsCache.shared
     @State private var classes = ClassesCache.shared
+    @State private var substitutions = SubstitutionsCache.shared
     
     var body: some Scene {
         WindowGroup {

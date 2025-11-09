@@ -27,7 +27,12 @@ class AuthService : ObservableObject {
             }
             
             let user = User(id: username, password: password, classA: `class`, isAuthorized: true)
-            UserSession.shared.user = user
+            
+            // Update on main thread
+            await MainActor.run {
+                UserSession.shared.user = user
+            }
+            
             user.saveCredentials()
             user.saveClassA()
             

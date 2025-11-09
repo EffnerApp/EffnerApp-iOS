@@ -9,6 +9,8 @@ import SwiftUI
 
 struct LoginView: View {
     
+    @EnvironmentObject private var classes: ClassesCache
+    
     @State private var showAlert = false
     @State private var alertMessage: String = ""
     
@@ -83,11 +85,10 @@ struct LoginView: View {
         }
         
         .task {
-            await ClassesCache.shared.refreshCache()
-            let classes = ClassesCache.shared.cachedClasses
+            await classes.refreshCache()
             
-            pickerOptions = classes.isEmpty ? pickerOptions : classes
-            selectedOption = classes.first ?? "nil"
+            pickerOptions = classes.cachedClasses.isEmpty ? pickerOptions : classes.cachedClasses
+            selectedOption = classes.cachedClasses.first ?? "nil"
         }
     }
 }

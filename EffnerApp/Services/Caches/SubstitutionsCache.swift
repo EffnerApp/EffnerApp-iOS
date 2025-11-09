@@ -33,14 +33,14 @@ class SubstitutionsCache: ObservableObject {
         UserSession.shared.objectWillChange
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                Task {
+                Task { @MainActor in
                     await self.refreshCache()
                 }
             }
             .store(in: &cancellables)
     }
     
-    private func refreshCache() async {
+    public func refreshCache() async {
         if UserSession.shared.user == nil || !UserSession.shared.user!.isAuthorized {
             return
         }

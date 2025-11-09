@@ -19,14 +19,16 @@ class ClassesCache: ObservableObject {
     }
     
     private func saveClasses(_ classes: [String]) {
-        cachedClasses = classes
+        DispatchQueue.main.async {
+            self.cachedClasses = classes
+        }
     }
     
     private func watchUserSession() {
         UserSession.shared.objectWillChange
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                Task {
+                Task { @MainActor in
                     await self.refreshCache()
                 }
             }

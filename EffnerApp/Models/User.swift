@@ -18,6 +18,25 @@ class UserSession: ObservableObject {
         }
     }
     
+    // Helper method to update class and trigger cache refresh
+    @MainActor
+    func updateUserClass(_ newClass: String) {
+        guard var currentUser = user else { return }
+        let oldClass = currentUser.classA
+        
+        if oldClass != newClass {
+            currentUser.classA = newClass
+            currentUser.saveClassA()
+            self.user = currentUser
+            
+            // Trigger cache refresh
+            Task { @MainActor in
+                await ExamsCache.shared.refreshCache()
+                await SubstitutionsCache.shared.refreshCache()
+            }
+        }
+    }
+    
     private init() {
         // Initialize the UserSessions
         user = loadUserFromStorage();
@@ -27,7 +46,7 @@ class UserSession: ObservableObject {
             return
         }
         
-        Task {
+        Task { @MainActor in
             let isAuthorized = await AuthService().authorize(user: user)
             switch isAuthorized {
                 case .success(let authorized):
@@ -72,6 +91,7 @@ class UserSession: ObservableObject {
         return User(id: account, password: password, classA: classA, isAuthorized: false)
     }
     
+    @MainActor
     func logout() {
         // Clear user session
         user?.clearCredentials()

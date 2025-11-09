@@ -11,11 +11,11 @@ import Combine
 struct ExamsView: View {
     @State private var isLoading: Bool = true
     @State private var errorMessage: String? = nil
-    @ObservedObject private var examsCache: ExamsCache = ExamsCache.shared
+    @EnvironmentObject private var examsCache: ExamsCache
 
     init(isPreview: Bool = false) {
         if isPreview {
-            examsCache.saveExams(MockExam.mockExams)
+            ExamsCache.shared.saveExams(MockExam.mockExams)
         }
     }
 

@@ -9,18 +9,26 @@ import SwiftUI
 
 @main
 struct EffnerAppApp: App {
-    @State private var session = UserSession.shared
-    @State private var exams = ExamsCache.shared
-    @State private var classes = ClassesCache.shared
-    @State private var substitutions = SubstitutionsCache.shared
+    @StateObject private var session = UserSession.shared
+    @StateObject private var exams = ExamsCache.shared
+    @StateObject private var classes = ClassesCache.shared
+    @StateObject private var substitutions = SubstitutionsCache.shared
     
     var body: some Scene {
         WindowGroup {
             if let user = session.user, user.isAuthorized {
                 ContentView()
+                    .environmentObject(session)
+                    .environmentObject(exams)
+                    .environmentObject(classes)
+                    .environmentObject(substitutions)
                     .transition(.slide)
             } else {
                 LoginView()
+                    .environmentObject(session)
+                    .environmentObject(exams)
+                    .environmentObject(classes)
+                    .environmentObject(substitutions)
             }
         }
     }

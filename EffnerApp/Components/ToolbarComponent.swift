@@ -7,19 +7,19 @@
 import SwiftUI
 
 struct ToolbarComponent: ToolbarContent {
-    @State private var selectedClass: String = UserSession.shared.user?.classA ?? "1a"
+    @EnvironmentObject var session: UserSession
+    @EnvironmentObject var classes: ClassesCache
     @State private var isDropdownVisible: Bool = false
 
     var body: some ToolbarContent {
         ToolbarItemGroup {
             Menu {
                 VStack {
-                    ForEach(ClassesCache.shared.cachedClasses, id: \ .self) { className in
+                    ForEach(classes.cachedClasses, id: \.self) { className in
                         Button(action: {
-                            selectedClass = className
-                            UserSession.shared.user?.classA = className
+                            session.updateUserClass(className)
                         }) {
-                            if selectedClass == className {
+                            if session.user?.classA == className {
                                 Image(systemName: "checkmark")
                             }
                             Text(className)
@@ -27,22 +27,21 @@ struct ToolbarComponent: ToolbarContent {
                         .id(className) // Set the ID for scrolling
                     }
                     Button(action: {
-                        selectedClass = "test"
-                        UserSession.shared.user?.classA = "test"
+                        session.updateUserClass("test")
                     }) {
-                        if selectedClass == "test" {
+                        if session.user?.classA == "test" {
                             Image(systemName: "checkmark")
                         }
                         Text("test")
                     }
                 }
             } label: {
-                Text(selectedClass)
+                Text(session.user?.classA ?? "1a")
                     .font(.title)
             }
             
             Button(action: {
-                UserSession.shared.logout()
+                session.logout()
             }) {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
             }

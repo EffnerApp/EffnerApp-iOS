@@ -11,11 +11,11 @@ import Combine
 struct SubstitutionsView: View {
     @State private var isLoading: Bool = true
     @State private var errorMessage: String? = nil
-    @ObservedObject private var substitutionsCache: SubstitutionsCache = SubstitutionsCache.shared
+    @EnvironmentObject private var substitutionsCache: SubstitutionsCache
     
     init(isPreview: Bool = false) {
         if isPreview {
-            substitutionsCache.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
+            SubstitutionsCache.shared.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
         }
     }
     

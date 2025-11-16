@@ -19,7 +19,7 @@ struct ToolbarComponent: ToolbarContent {
                         Button(action: {
                             session.updateUserClass(className)
                         }) {
-                            if session.user?.classA == className {
+                            if session.user?.klass == className {
                                 Image(systemName: "checkmark")
                             }
                             Text(className)
@@ -29,14 +29,14 @@ struct ToolbarComponent: ToolbarContent {
                     Button(action: {
                         session.updateUserClass("test")
                     }) {
-                        if session.user?.classA == "test" {
+                        if session.user?.klass == "test" {
                             Image(systemName: "checkmark")
                         }
                         Text("test")
                     }
                 }
             } label: {
-                Text(session.user?.classA ?? "1a")
+                Text(session.user?.klass ?? "1a")
                     .font(.title)
             }
             

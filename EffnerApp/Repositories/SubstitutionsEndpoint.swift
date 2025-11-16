@@ -14,7 +14,7 @@ struct SubstitutionsEndpoint : Endpoint {
     }
     
     var path: String {
-        "/substitutions/get/" + UserSession.shared.user!.classA
+        "/substitutions/get/" + UserSession.shared.user!.klass
     }
     
     var method: HTTPMethod {

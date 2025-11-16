@@ -21,8 +21,6 @@ class SubstitutionsService : ObservableObject {
         do {
             let subResponse: SubstitutionResponse = try await networkManager.fetch(from: SubstitutionsEndpoint())
             
-            print("Fetched substitution plans: \(subResponse.plans.count) plan(s)")
-            
             return .success(subResponse)
         } catch let networkError as NetworkError {
             self.error = networkError

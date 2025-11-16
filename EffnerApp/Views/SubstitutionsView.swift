@@ -23,7 +23,13 @@ struct SubstitutionsView: View {
         NavigationStack {
             ScrollViewReader { proxy in
                 List {
-                    if substitutionsCache.cachedSubstitutionPlans == nil {
+                    if substitutionsCache.hasError {
+                        ContentUnavailableView(
+                            "Vertretungsplan nicht verfügbar",
+                            systemImage: "calendar.badge.exclamationmark",
+                            description: Text("Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.")
+                        )
+                    } else if substitutionsCache.cachedSubstitutionPlans == nil {
                         ForEach(0..<10, id: \.self) { _ in
                             SubstitutionSkeletonView()
                         }
@@ -221,26 +227,6 @@ struct SubstitutionSeparatorView: View {
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemGroupedBackground))
-    }
-}
-
-struct SubstitutionSkeletonView: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("1.")
-                    .font(.title2)
-                    .frame(width: 40, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Placeholder Teacher")
-                        .font(.body)
-                    Text("Placeholder Info")
-                        .font(.subheadline)
-                }
-            }
-        }
-        .padding(.vertical, 8)
     }
 }
 

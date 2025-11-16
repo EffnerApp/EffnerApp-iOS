@@ -16,6 +16,7 @@ class SubstitutionsCache: ObservableObject {
             objectWillChange.send()
         }
     }
+    @Published var hasError: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -45,6 +46,12 @@ class SubstitutionsCache: ObservableObject {
             return
         }
         
+        // Clear cache before refreshing
+        await MainActor.run {
+            cachedSubstitutionPlans = nil
+            hasError = false
+        }
+        
         if UserSession.shared.user!.klass == "test" {
             self.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
             print("Substitutions cache refreshed with mock data.")
@@ -57,13 +64,19 @@ class SubstitutionsCache: ObservableObject {
         let result = await substitutionsService.fetchSubstitutions()
         switch result {
             case .success(let response):
-            if response.plans.isEmpty == false, let _ = response.plans.first {
+                await MainActor.run {
+                    hasError = false
+                }
+                if response.plans.isEmpty == false, let _ = response.plans.first {
                     self.saveSubstitutions(response)
-                print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
+                    print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
                 } else {
                     print("No substitution plans available.")
                 }
             case .failure(let error):
+                await MainActor.run {
+                    hasError = true
+                }
                 print("Failed to refresh substitutions cache: \(error.localizedDescription)")
         }
     }

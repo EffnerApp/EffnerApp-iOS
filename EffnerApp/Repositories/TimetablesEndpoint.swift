@@ -17,7 +17,7 @@ struct TimetablesEndpoint : Endpoint {
     }
     
     var method: HTTPMethod {
-        .post
+        .get
     }
     
     var authentication: Authentication? {

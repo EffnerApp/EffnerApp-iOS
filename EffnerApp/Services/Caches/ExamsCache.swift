@@ -14,6 +14,7 @@ class ExamsCache: ObservableObject {
             objectWillChange.send()
         }
     }
+    @Published var hasError: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -42,6 +43,13 @@ class ExamsCache: ObservableObject {
         if(UserSession.shared.user == nil || !UserSession.shared.user!.isAuthorized) {
             return
         }
+        
+        // Clear cache before refreshing
+        await MainActor.run {
+            cachedExamResponse = ExamsResponse(className: "nil", exams: [])
+            hasError = false
+        }
+        
         if(UserSession.shared.user!.klass == "test") {
             self.saveExams(MockExam.mockExams)
             print("Exams cache refreshed with mock data.")
@@ -54,9 +62,15 @@ class ExamsCache: ObservableObject {
         let result = await examsService.fetchExams()
         switch result {
             case .success(let response):
+                await MainActor.run {
+                    hasError = false
+                }
                 self.saveExams(response)
                 print("Exams cache refreshed successfully.")
             case .failure(let error):
+                await MainActor.run {
+                    hasError = true
+                }
                 print("Failed to refresh exams cache: \(error.localizedDescription)")
         }
     }

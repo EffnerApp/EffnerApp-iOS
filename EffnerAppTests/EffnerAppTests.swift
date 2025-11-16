@@ -50,8 +50,6 @@ struct EffnerAppTests {
         let timetables = await timetablesService.fetchTimetable()
         
         print(timetables)
-        
-        
     }
 
 }

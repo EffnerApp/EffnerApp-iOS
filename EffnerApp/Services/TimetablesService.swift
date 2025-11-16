@@ -17,16 +17,11 @@ class TimetablesService : ObservableObject {
         self.networkManager = networkManager
     }
     
-    func fetchTimetable() async -> Result<String, NetworkError> {
+    func fetchTimetable() async -> Result<TimetableResponse, NetworkError> {
         do {
-            let timetableResponse: String = try await networkManager.fetch(from: TimetablesEndpoint())
+            let timetableResponse: TimetableResponse = try await networkManager.fetch(from: TimetablesEndpoint())
             
             print("Timetable Response: \(timetableResponse)")
-            
-            guard !timetableResponse.isEmpty else {
-                self.error = .serverError(statusCode: 500, msg: "No timetable objects available.")
-                return .failure(self.error!)
-            }
             
             return .success(timetableResponse)
         } catch let networkError as NetworkError {

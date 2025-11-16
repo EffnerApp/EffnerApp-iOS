@@ -13,6 +13,7 @@ struct EffnerAppApp: App {
     @StateObject private var exams = ExamsCache.shared
     @StateObject private var classes = ClassesCache.shared
     @StateObject private var substitutions = SubstitutionsCache.shared
+    @StateObject private var timetables = TimetablesCache.shared
     
     var body: some Scene {
         WindowGroup {
@@ -22,6 +23,7 @@ struct EffnerAppApp: App {
                     .environmentObject(exams)
                     .environmentObject(classes)
                     .environmentObject(substitutions)
+                    .environmentObject(timetables)
                     .transition(.slide)
             } else {
                 LoginView()
@@ -29,6 +31,7 @@ struct EffnerAppApp: App {
                     .environmentObject(exams)
                     .environmentObject(classes)
                     .environmentObject(substitutions)
+                    .environmentObject(timetables)
             }
         }
     }

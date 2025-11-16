@@ -23,7 +23,13 @@ struct ExamsView: View {
         NavigationStack {
             ScrollViewReader { proxy in
                 Group {
-                    if examsCache.cachedExamResponse.exams.isEmpty {
+                    if examsCache.hasError {
+                        ContentUnavailableView(
+                            "Klausuren nicht verfügbar",
+                            systemImage: "calendar.badge.exclamationmark",
+                            description: Text("Die Klausuren konnten nicht geladen werden. Bitte versuche es später erneut.")
+                        )
+                    } else if examsCache.cachedExamResponse.exams.isEmpty {
                         List(0..<10, id: \.self) { _ in
                             ExamSkeletonView()
                         }

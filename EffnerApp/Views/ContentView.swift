@@ -41,10 +41,10 @@ struct ContentView: View {
                         Image(systemName: "graduationcap")
                         Text("Klausuren")
                     }
-                FourthView()
+                TimetableView()
                     .tabItem {
-                        Image(systemName: "4.circle")
-                        Text("Fourth")
+                        Image(systemName: "calendar.day.timeline.right")
+                        Text("Stundenplan")
                     }
             }
         }

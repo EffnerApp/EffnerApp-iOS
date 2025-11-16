@@ -45,7 +45,7 @@ class SubstitutionsCache: ObservableObject {
             return
         }
         
-        if UserSession.shared.user!.classA == "test" {
+        if UserSession.shared.user!.klass == "test" {
             self.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
             print("Substitutions cache refreshed with mock data.")
             return

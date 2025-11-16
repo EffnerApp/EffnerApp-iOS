@@ -22,10 +22,10 @@ class UserSession: ObservableObject {
     @MainActor
     func updateUserClass(_ newClass: String) {
         guard var currentUser = user else { return }
-        let oldClass = currentUser.classA
+        let oldClass = currentUser.klass
         
         if oldClass != newClass {
-            currentUser.classA = newClass
+            currentUser.klass = newClass
             currentUser.saveClassA()
             self.user = currentUser
             
@@ -88,7 +88,7 @@ class UserSession: ObservableObject {
             return nil
         }
         // Set user
-        return User(id: account, password: password, classA: classA, isAuthorized: false)
+        return User(id: account, password: password, klass: classA, isAuthorized: false)
     }
     
     @MainActor
@@ -105,7 +105,7 @@ struct User: Codable {
     
     var id: String
     var password: String
-    var classA: String
+    var klass: String
     
     var isAuthorized: Bool = false
     
@@ -134,7 +134,7 @@ struct User: Codable {
     }
     
     func saveClassA() {
-        UserDefaults.standard.set(classA, forKey: "userClassA")
+        UserDefaults.standard.set(klass, forKey: "userClassA")
     }
     
     func clearCredentials() {

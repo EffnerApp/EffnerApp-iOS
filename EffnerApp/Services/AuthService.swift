@@ -26,7 +26,7 @@ class AuthService : ObservableObject {
                 return .failure(self.error!)
             }
             
-            let user = User(id: username, password: password, classA: `class`, isAuthorized: true)
+            let user = User(id: username, password: password, klass: `class`, isAuthorized: true)
             
             // Update on main thread
             await MainActor.run {

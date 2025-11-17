@@ -55,7 +55,7 @@ struct SubstitutionsView: View {
                         proxy.scrollTo("futureSubstitution_\(firstFuturePlan.date)", anchor: .top)
                     }
                 }
-                .navigationTitle("Vertretungsplan")
+                .navigationTitle("Vertretungen")
                 .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
                     ToolbarComponent()

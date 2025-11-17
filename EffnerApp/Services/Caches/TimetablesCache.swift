@@ -69,7 +69,6 @@ class TimetablesCache: ObservableObject {
                 hasError = false
             }
             print("Timetable cache refreshed successfully.")
-            print(response)
         case .failure(let error):
             await MainActor.run {
                 hasError = true

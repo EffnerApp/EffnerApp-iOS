@@ -21,8 +21,6 @@ class TimetablesService : ObservableObject {
         do {
             let timetableResponse: TimetableResponse = try await networkManager.fetch(from: TimetablesEndpoint())
             
-            print("Timetable Response: \(timetableResponse)")
-            
             return .success(timetableResponse)
         } catch let networkError as NetworkError {
             self.error = networkError

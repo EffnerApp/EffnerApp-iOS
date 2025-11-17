@@ -23,10 +23,9 @@ extension Endpoint {
         var allHeaders = headers ?? [:]
         allHeaders["User-Agent"] = "EffnerApp/8.0-iOS"
         allHeaders["Content-Type"] = "application/json"
-        if(authentication != nil) {
-            allHeaders["Authorization"] = "Basic \(authentication!.credentialHash)"
-            allHeaders["X-Time"] = authentication!.time
-            print("Time3: " + authentication!.time)
+        if let auth = authentication {
+            allHeaders["Authorization"] = "Basic \(auth.credentialHash)"
+            allHeaders["X-Time"] = auth.time
         }
         request.allHTTPHeaderFields = allHeaders
         

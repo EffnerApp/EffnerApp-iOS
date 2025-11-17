@@ -14,26 +14,12 @@ class ClassesCache: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
-        watchUserSession()
-    }
-    
     private func saveClasses(_ classes: [String]) {
         DispatchQueue.main.async {
             self.cachedClasses = classes
         }
     }
-    
-    private func watchUserSession() {
-        UserSession.shared.objectWillChange
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    await self.refreshCache()
-                }
-            }
-            .store(in: &cancellables)
-    }
+
     
     public func refreshCache() async {
         let classesService = ClassesService()

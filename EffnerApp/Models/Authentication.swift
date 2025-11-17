@@ -23,9 +23,6 @@ extension Authentication {
         time = currentTime
         let credentials = "\(id):\(password):\(currentTime)"
         self.credentialHash = sha512(string: credentials)
-        
-        // Debug: nur ausgeben, wenn tatsächlich ein neues Auth-Objekt erstellt wird
-        print("🔐 New Authentication created at: \(currentTime)")
     }
 
 }

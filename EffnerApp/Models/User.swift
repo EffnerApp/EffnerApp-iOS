@@ -28,13 +28,6 @@ class UserSession: ObservableObject {
             currentUser.klass = newKlass
             currentUser.saveKlass()
             self.user = currentUser
-            
-            // Trigger cache refresh
-            Task { @MainActor in
-                await ExamsCache.shared.refreshCache()
-                await SubstitutionsCache.shared.refreshCache()
-                await TimetablesCache.shared.refreshCache()
-            }
         }
     }
     

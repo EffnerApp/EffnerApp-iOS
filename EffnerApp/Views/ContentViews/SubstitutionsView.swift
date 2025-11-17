@@ -9,8 +9,6 @@ import SwiftUI
 import Combine
 
 struct SubstitutionsView: View {
-    @State private var isLoading: Bool = true
-    @State private var errorMessage: String? = nil
     @EnvironmentObject private var substitutionsCache: SubstitutionsCache
     
     init(isPreview: Bool = false) {
@@ -20,18 +18,22 @@ struct SubstitutionsView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ScrollViewReader { proxy in
+        BaseContentView(
+            cache: substitutionsCache,
+            navigationTitle: "Vertretungen",
+            errorTitle: "Vertretungsplan nicht verfügbar",
+            errorDescription: "Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.",
+            useScrollViewReader: true,
+            scrollToId: { cache in
+                if let plans = cache.cachedSubstitutionPlans?.plans,
+                   let firstFuturePlan = plans.first(where: { !isPastDate($0.date) }) {
+                    return "futureSubstitution_\(firstFuturePlan.date)"
+                }
+                return nil
+            },
+            content: { cache in
                 List {
-                    if substitutionsCache.hasError {
-                        ContentUnavailableView(
-                            "Vertretungsplan nicht verfügbar",
-                            systemImage: "calendar.badge.exclamationmark",
-                            description: Text("Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.")
-                        )
-                    } else if substitutionsCache.cachedSubstitutionPlans == nil {
-                        SubstitutionSkeletonView()
-                    } else if let plans = substitutionsCache.cachedSubstitutionPlans?.plans {
+                    if let plans = cache.cachedSubstitutionPlans?.plans {
                         // Vergangene Tage
                         ForEach(plans.filter { isPastDate($0.date) }, id: \.date) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.date, isPast: true)) {
@@ -49,19 +51,11 @@ struct SubstitutionsView: View {
                         }
                     }
                 }
-                .onAppear {
-                    if let plans = substitutionsCache.cachedSubstitutionPlans?.plans,
-                       let firstFuturePlan = plans.first(where: { !isPastDate($0.date) }) {
-                        proxy.scrollTo("futureSubstitution_\(firstFuturePlan.date)", anchor: .top)
-                    }
-                }
-                .navigationTitle("Vertretungen")
-                .toolbarTitleDisplayMode(.inlineLarge)
-                .toolbar {
-                    ToolbarComponent()
-                }
+            },
+            skeletonView: {
+                SubstitutionSkeletonView()
             }
-        }
+        )
     }
     
     private func isPastDate(_ dateString: String) -> Bool {

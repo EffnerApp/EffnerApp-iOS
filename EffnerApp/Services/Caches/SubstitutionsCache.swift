@@ -8,76 +8,46 @@
 import Foundation
 import Combine
 
-class SubstitutionsCache: ObservableObject {
+class SubstitutionsCache: BaseCache<SubstitutionResponse> {
     static let shared = SubstitutionsCache()
     
-    @Published var cachedSubstitutionPlans: SubstitutionResponse? = nil {
-        didSet {
-            objectWillChange.send()
-        }
-    }
-    @Published var hasError: Bool = false
-    
-    private var cancellables = Set<AnyCancellable>()
-    
-    init() {
-        watchUserSession()
+    // Convenience accessor für bessere Lesbarkeit
+    var cachedSubstitutionPlans: SubstitutionResponse? {
+        cachedResponse
     }
     
+    // Convenience-Methode für bessere API
     public func saveSubstitutions(_ plan: SubstitutionResponse) {
-        DispatchQueue.main.async {
-            self.cachedSubstitutionPlans = plan
-        }
+        saveResponse(plan)
     }
     
-    private func watchUserSession() {
-        UserSession.shared.objectWillChange
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    await self.refreshCache()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    public func refreshCache() async {
-        if UserSession.shared.user == nil || !UserSession.shared.user!.isAuthorized {
-            return
-        }
+    // Implementation der Cache-Refresh-Logik
+    override public func refreshCache() async {
+        guard isUserAuthorized() else { return }
         
-        // Clear cache before refreshing
-        await MainActor.run {
-            cachedSubstitutionPlans = nil
-            hasError = false
-        }
+        await setLoading()
         
-        if UserSession.shared.user!.klass == "test" {
-            self.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
+        // Mock-Daten für Test-User
+        if shouldUseMockData() {
+            saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
             print("Substitutions cache refreshed with mock data.")
             return
         }
         
         let substitutionsService = SubstitutionsService()
-        
-        // Fetch from network
         let result = await substitutionsService.fetchSubstitutions()
+        
         switch result {
-            case .success(let response):
-                await MainActor.run {
-                    hasError = false
-                }
-                if response.plans.isEmpty == false, let _ = response.plans.first {
-                    self.saveSubstitutions(response)
-                    print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
-                } else {
-                    print("No substitution plans available.")
-                }
-            case .failure(let error):
-                await MainActor.run {
-                    hasError = true
-                }
-                print("Failed to refresh substitutions cache: \(error.localizedDescription)")
+        case .success(let response):
+            if response.plans.isEmpty == false, let _ = response.plans.first {
+                saveSubstitutions(response)
+                print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
+            } else {
+                print("No substitution plans available.")
+            }
+        case .failure(let error):
+            await setError()
+            print("Failed to refresh substitutions cache: \(error.localizedDescription)")
         }
     }
 }

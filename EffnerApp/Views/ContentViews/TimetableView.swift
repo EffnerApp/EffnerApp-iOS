@@ -27,6 +27,8 @@ struct TimetableView: View {
             useScrollViewReader: false,
             content: { cache in
                 if let timetable = cache.cachedTimetableResponse?.data.first {
+                    let maxLessons = getMaxLessons(from: timetable)
+                    
                     ScrollView {
                         VStack(spacing: 0) {
                             // Header mit Wochentagen
@@ -45,8 +47,8 @@ struct TimetableView: View {
                             
                             Divider()
                             
-                            // Stundenplan Grid
-                            ForEach(0..<10, id: \.self) { lessonIndex in
+                            // Stundenplan Grid - nur bis zur maximalen Stundenanzahl
+                            ForEach(0..<maxLessons, id: \.self) { lessonIndex in
                                 HStack(spacing: 0) {
                                     // Fächer für jeden Wochentag
                                     ForEach(0..<5, id: \.self) { dayIndex in
@@ -63,7 +65,7 @@ struct TimetableView: View {
                                     }
                                 }
                                 
-                                if lessonIndex < 9 {
+                                if lessonIndex < maxLessons - 1 {
                                     Divider()
                                 }
                             }
@@ -80,6 +82,23 @@ struct TimetableView: View {
                 TimetableSkeletonView()
             }
         )
+    }
+    
+    // Hilfsfunktion um die maximale Anzahl nicht-leerer Stunden zu finden
+    private func getMaxLessons(from timetable: Timetable) -> Int {
+        var maxLessons = 0
+        
+        for day in timetable.lessons {
+            // Finde die letzte nicht-leere Stunde für diesen Tag
+            for (index, subject) in day.enumerated().reversed() {
+                if !subject.isEmpty {
+                    maxLessons = max(maxLessons, index + 1)
+                    break
+                }
+            }
+        }
+        
+        return maxLessons
     }
     
     // Hilfsfunktion um die Farbe für ein Fach zu finden

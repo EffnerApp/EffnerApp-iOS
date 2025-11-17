@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Timetable Response
 struct TimetableResponse: Decodable {
     let data: [Timetable]
-    let schedule: [String] // Leeres Array im JSON, könnte später gefüllt werden
+    let schedule: [Array<Int>?]
 }
 
 // MARK: - Class Timetable

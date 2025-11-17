@@ -15,20 +15,20 @@ struct Authentication: Codable {
 
 extension Authentication {
     init(user: User) {
-        self.time = String(Int(Date().timeIntervalSince1970 * 1000))
-        let credentials = "\(user.id):\(user.password):\(time)"
-        self.credentialHash = sha512(string: credentials)
+        self.init(id: user.id, password: user.password)
     }
     
     init(id: String, password: String) {
-        self.time = String(Int(Date().timeIntervalSince1970 * 1000))
-        let credentials = "\(id):\(password):\(time)"
+        let currentTime = String(Int(Date().timeIntervalSince1970 * 1000))
+        time = currentTime
+        let credentials = "\(id):\(password):\(currentTime)"
         self.credentialHash = sha512(string: credentials)
+        
+        // Debug: nur ausgeben, wenn tatsächlich ein neues Auth-Objekt erstellt wird
+        print("🔐 New Authentication created at: \(currentTime)")
     }
-    
+
 }
-
-
 
 private func sha512(string: String) -> String {
     guard let data = string.data(using: .utf8) else { return "" }

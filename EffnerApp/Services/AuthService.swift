@@ -34,7 +34,7 @@ class AuthService : ObservableObject {
             }
             
             user.saveCredentials()
-            user.saveClassA()
+            user.saveKlass()
             
             return .success(user)
         } catch let networkError as NetworkError {

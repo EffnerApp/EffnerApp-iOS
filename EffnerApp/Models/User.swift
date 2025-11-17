@@ -20,19 +20,20 @@ class UserSession: ObservableObject {
     
     // Helper method to update class and trigger cache refresh
     @MainActor
-    func updateUserClass(_ newClass: String) {
+    func updateUserKlass(_ newKlass: String) {
         guard var currentUser = user else { return }
-        let oldClass = currentUser.klass
+        let olKClass = currentUser.klass
         
-        if oldClass != newClass {
-            currentUser.klass = newClass
-            currentUser.saveClassA()
+        if olKClass != newKlass {
+            currentUser.klass = newKlass
+            currentUser.saveKlass()
             self.user = currentUser
             
             // Trigger cache refresh
             Task { @MainActor in
                 await ExamsCache.shared.refreshCache()
                 await SubstitutionsCache.shared.refreshCache()
+                await TimetablesCache.shared.refreshCache()
             }
         }
     }
@@ -102,7 +103,6 @@ class UserSession: ObservableObject {
 
 
 struct User: Codable {
-    
     var id: String
     var password: String
     var klass: String
@@ -133,7 +133,7 @@ struct User: Codable {
         }
     }
     
-    func saveClassA() {
+    func saveKlass() {
         UserDefaults.standard.set(klass, forKey: "userClassA")
     }
     

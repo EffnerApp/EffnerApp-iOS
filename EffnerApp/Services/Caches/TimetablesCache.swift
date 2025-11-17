@@ -8,71 +8,53 @@
 import Foundation
 import Combine
 
-class TimetablesCache: ObservableObject {
+class TimetablesCache: BaseCache<TimetableResponse> {
     static let shared = TimetablesCache()
-    @Published var cachedTimetableResponse: TimetableResponse? = nil {
-        didSet {
-            objectWillChange.send()
+    
+    // Convenience accessor für bessere Lesbarkeit
+    var cachedTimetableResponse: TimetableResponse? {
+        cachedResponse
+    }
+    
+    // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
+    override var hasError: Bool {
+        if case .error = loadState {
+            return true
         }
+        // Auch Error wenn Daten leer sind
+        if case .loaded(let response) = loadState, response.data.isEmpty {
+            return true
+        }
+        return false
     }
     
-    @Published var hasError: Bool = false
-    
-    private var cancellables = Set<AnyCancellable>()
-    
-    init() {
-        watchUserSession()
-    }
-    
-    
+    // Convenience-Methode für bessere API
     public func saveTimetables(_ timetables: TimetableResponse) {
-        DispatchQueue.main.async {
-            self.cachedTimetableResponse = timetables
-        }
+        saveResponse(timetables)
     }
     
-    public func watchUserSession() {
-        UserSession.shared.objectWillChange
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    await self.refreshCache()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    public func refreshCache() async {
-        if(UserSession.shared.user == nil || !UserSession.shared.user!.isAuthorized) {
-            return
-        }
+    // Implementation der Cache-Refresh-Logik
+    override public func refreshCache() async {
+        guard isUserAuthorized() else { return }
         
-        // Set loading state
-        await MainActor.run {
-            hasError = false
-            cachedTimetableResponse = nil
-        }
+        await setLoading()
         
-        if(UserSession.shared.user!.klass == "test") {
-            self.saveTimetables(MockTimetable.mockTimetable)
+        // Mock-Daten für Test-User
+        if shouldUseMockData() {
+            saveTimetables(MockTimetable.mockEmpty)
             print("Timetable cache refreshed with mock data.")
             return
         }
-        let timetablesService = TimetablesService()
         
-        // Fetch from network if cache is empty
+        let timetablesService = TimetablesService()
         let result = await timetablesService.fetchTimetable()
+        
         switch result {
         case .success(let response):
-            self.saveTimetables(response)
-            await MainActor.run {
-                hasError = false
-            }
+            saveTimetables(response)
             print("Timetable cache refreshed successfully.")
         case .failure(let error):
-            await MainActor.run {
-                hasError = true
-            }
+            await setError()
             print("Failed to refresh Timetable cache: \(error.localizedDescription)")
         }
     }

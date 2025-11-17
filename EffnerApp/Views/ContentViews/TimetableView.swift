@@ -19,19 +19,14 @@ struct TimetableView: View {
     private let weekdays = ["Mo", "Di", "Mi", "Do", "Fr"]
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if timetablesCache.hasError {
-                    // Zeige Fehler nur wenn ein Error aufgetreten ist
-                    ContentUnavailableView(
-                        "Kein Stundenplan verfügbar",
-                        systemImage: "calendar.badge.exclamationmark",
-                        description: Text("Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.")
-                    )
-                } else if timetablesCache.cachedTimetableResponse == nil {
-                    TimetableSkeletonView()
-                } else if let timetable = timetablesCache.cachedTimetableResponse?.data.first {
-                    // Zeige den echten Stundenplan
+        BaseContentView(
+            cache: timetablesCache,
+            navigationTitle: "Stundenplan",
+            errorTitle: "Kein Stundenplan verfügbar",
+            errorDescription: "Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.",
+            useScrollViewReader: false,
+            content: { cache in
+                if let timetable = cache.cachedTimetableResponse?.data.first {
                     ScrollView {
                         VStack(spacing: 0) {
                             // Header mit Wochentagen
@@ -80,13 +75,11 @@ struct TimetableView: View {
                     }
                     .scrollBounceBehavior(.basedOnSize)
                 }
+            },
+            skeletonView: {
+                TimetableSkeletonView()
             }
-            .navigationTitle("Stundenplan")
-            .toolbarTitleDisplayMode(.inlineLarge)
-            .toolbar {
-                ToolbarComponent()
-            }
-        }
+        )
     }
     
     // Hilfsfunktion um die Farbe für ein Fach zu finden

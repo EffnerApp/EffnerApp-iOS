@@ -20,7 +20,6 @@ class ClassesCache: ObservableObject {
         }
     }
 
-    
     public func refreshCache() async {
         let classesService = ClassesService()
         

@@ -9,8 +9,6 @@ import SwiftUI
 import Combine
 
 struct ExamsView: View {
-    @State private var isLoading: Bool = true
-    @State private var errorMessage: String? = nil
     @EnvironmentObject private var examsCache: ExamsCache
 
     init(isPreview: Bool = false) {
@@ -20,48 +18,36 @@ struct ExamsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollViewReader { proxy in
-                Group {
-                    if examsCache.hasError {
-                        ContentUnavailableView(
-                            "Klausuren nicht verfügbar",
-                            systemImage: "calendar.badge.exclamationmark",
-                            description: Text("Die Klausuren konnten nicht geladen werden. Bitte versuche es später erneut.")
-                        )
-                    } else if examsCache.cachedExamResponse.exams.isEmpty {
-                        List(0..<10, id: \.self) { _ in
-                            ExamSkeletonView()
-                        }
-                        .redacted(reason: .placeholder)
-                    } else {
-                        List {
-                            Section(header: SeparatorView()) {
-                                ForEach(examsCache.cachedExamResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
-                                    ExamRowView(exam: exam)
-                                }
-                            }
-                            .id("pastExams")
-                            
-                            Section(header: SeparatorView(isPast: false)) {
-                                ForEach(examsCache.cachedExamResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
-                                    ExamRowView(exam: exam)
-                                }
-                                .id("futureExams")
+        BaseContentView(
+            cache: examsCache,
+            navigationTitle: "Klausuren",
+            errorTitle: "Klausuren nicht verfügbar",
+            errorDescription: "Die Klausuren konnten nicht geladen werden. Bitte versuche es später erneut.",
+            useScrollViewReader: true,
+            scrollToId: { _ in "futureExams" },
+            content: { cache in
+                if let examResponse = cache.cachedExamResponse {
+                    List {
+                        Section(header: SeparatorView()) {
+                            ForEach(examResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
+                                ExamRowView(exam: exam)
                             }
                         }
+                        .id("pastExams")
+                        
+                        Section(header: SeparatorView(isPast: false)) {
+                            ForEach(examResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
+                                ExamRowView(exam: exam)
+                            }
+                        }
+                        .id("futureExams")
                     }
                 }
-                .onAppear {
-                    proxy.scrollTo("futureExams", anchor: .top)
-                }
-                .navigationTitle("Klausuren")
-                .toolbarTitleDisplayMode(.inlineLarge)
-                .toolbar {
-                    ToolbarComponent()
-                }
+            },
+            skeletonView: {
+                ExamSkeletonView()
             }
-        }
+        )
     }
 
     private func isPastExam(_ exam: Exam) -> Bool {

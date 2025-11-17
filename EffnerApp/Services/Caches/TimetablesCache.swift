@@ -64,7 +64,7 @@ class TimetablesCache: ObservableObject {
         let result = await timetablesService.fetchTimetable()
         switch result {
         case .success(let response):
-            await self.saveTimetables(response)
+            self.saveTimetables(response)
             await MainActor.run {
                 hasError = false
             }

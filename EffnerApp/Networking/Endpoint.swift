@@ -26,6 +26,7 @@ extension Endpoint {
         if(authentication != nil) {
             allHeaders["Authorization"] = "Basic \(authentication!.credentialHash)"
             allHeaders["X-Time"] = authentication!.time
+            print("Time3: " + authentication!.time)
         }
         request.allHTTPHeaderFields = allHeaders
         

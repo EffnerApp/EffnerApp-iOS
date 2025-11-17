@@ -30,7 +30,7 @@ final class NetworkManager: NetworkManaging {
         try validateResponse(request, httpResponse)
         
         do {
-            //print("NetworkResponse: " + (String(data: data, encoding: .utf8) ?? "<non-UTF8 data>"))
+            print("NetworkResponse: " + (String(data: data, encoding: .utf8) ?? "<non-UTF8 data>"))
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             return try decoder.decode(T.self, from: data)

@@ -17,7 +17,7 @@ struct ToolbarComponent: ToolbarContent {
                 VStack {
                     ForEach(classes.cachedClasses, id: \.self) { className in
                         Button(action: {
-                            session.updateUserClass(className)
+                            session.updateUserKlass(className)
                         }) {
                             if session.user?.klass == className {
                                 Image(systemName: "checkmark")
@@ -27,7 +27,7 @@ struct ToolbarComponent: ToolbarContent {
                         .id(className) // Set the ID for scrolling
                     }
                     Button(action: {
-                        session.updateUserClass("test")
+                        session.updateUserKlass("test")
                     }) {
                         if session.user?.klass == "test" {
                             Image(systemName: "checkmark")

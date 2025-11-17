@@ -30,10 +30,7 @@ struct SubstitutionsView: View {
                             description: Text("Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.")
                         )
                     } else if substitutionsCache.cachedSubstitutionPlans == nil {
-                        ForEach(0..<10, id: \.self) { _ in
-                            SubstitutionSkeletonView()
-                        }
-                        .redacted(reason: .placeholder)
+                        SubstitutionSkeletonView()
                     } else if let plans = substitutionsCache.cachedSubstitutionPlans?.plans {
                         // Vergangene Tage
                         ForEach(plans.filter { isPastDate($0.date) }, id: \.date) { plan in

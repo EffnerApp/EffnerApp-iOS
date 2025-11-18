@@ -110,6 +110,7 @@ struct TimetableView: View {
         }
         return .blue
     }
+    
 }
 
 // MARK: - Lesson Cell

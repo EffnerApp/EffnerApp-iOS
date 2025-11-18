@@ -8,6 +8,10 @@
 import SwiftUI
 import Combine
 
+enum PlanTimeType {
+    case PAST, TODAY, FUTURE
+}
+
 struct SubstitutionsView: View {
     @EnvironmentObject private var substitutionsCache: SubstitutionsCache
     
@@ -26,7 +30,7 @@ struct SubstitutionsView: View {
             useScrollViewReader: true,
             scrollToId: { cache in
                 if let plans = cache.cachedSubstitutionPlans?.plans,
-                   let firstFuturePlan = plans.first(where: { !isPastDate($0.date) }) {
+                   let firstFuturePlan = plans.first(where: { getPlanTimeType($0.date) == PlanTimeType.FUTURE }) {
                     return "futureSubstitution_\(firstFuturePlan.date)"
                 }
                 return nil
@@ -35,16 +39,23 @@ struct SubstitutionsView: View {
                 List {
                     if let plans = cache.cachedSubstitutionPlans?.plans {
                         // Vergangene Tage
-                        ForEach(plans.filter { isPastDate($0.date) }, id: \.date) { plan in
-                            Section(header: SubstitutionSeparatorView(date: plan.date, isPast: true)) {
+                        ForEach(plans.filter { getPlanTimeType($0.date) == .PAST }, id: \.date) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .PAST)) {
                                 SubstitutionDayContent(plan: plan)
                             }
                             .id("pastSubstitution_\(plan.date)")
                         }
                         
+                        ForEach(plans.filter { getPlanTimeType($0.date) == .TODAY }, id: \.date) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .TODAY)) {
+                                SubstitutionDayContent(plan: plan)
+                            }
+                            .id("todaysSubstitution_\(plan.date)")
+                        }
+                        
                         // Zukünftige Tage
-                        ForEach(plans.filter { !isPastDate($0.date) }, id: \.date) { plan in
-                            Section(header: SubstitutionSeparatorView(date: plan.date, isPast: false)) {
+                        ForEach(plans.filter { getPlanTimeType($0.date) == .FUTURE }, id: \.date) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .FUTURE)) {
                                 SubstitutionDayContent(plan: plan)
                             }
                             .id("futureSubstitution_\(plan.date)")
@@ -58,14 +69,23 @@ struct SubstitutionsView: View {
         )
     }
     
-    private func isPastDate(_ dateString: String) -> Bool {
+    private func getPlanTimeType(_ dateString: String) -> PlanTimeType {
         let germanFormatter = DateFormatter()
         germanFormatter.dateFormat = "dd.MM.yyyy"
         
         if let date = germanFormatter.date(from: dateString) {
-            return date < Date()
+            let calendar = Calendar.current
+            let today = Date()
+            
+            if calendar.isDate(date, inSameDayAs: today) {
+                return .TODAY
+            } else if date < today {
+                return .PAST
+            } else {
+                return .FUTURE
+            }
         }
-        return false
+        return .FUTURE
     }
 }
 
@@ -197,12 +217,15 @@ struct SubstitutionRowView: View {
 
 struct SubstitutionSeparatorView: View {
     let date: String
-    var isPast: Bool = true
+    var planTimeType: PlanTimeType
     
     var body: some View {
         HStack {
-            if isPast {
+            if planTimeType == .PAST {
                 Text("Vergangene Tage")
+                    .font(.headline)
+            } else if planTimeType == .TODAY {
+                Text("Heute")
                     .font(.headline)
             } else {
                 Text("Zukünftige Tage")

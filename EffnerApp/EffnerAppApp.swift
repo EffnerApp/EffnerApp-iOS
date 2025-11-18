@@ -14,6 +14,8 @@ struct EffnerAppApp: App {
     @StateObject private var classes = ClassesCache.shared
     @StateObject private var substitutions = SubstitutionsCache.shared
     @StateObject private var timetables = TimetablesCache.shared
+    @StateObject private var config = ConfigCache.shared
+    @StateObject private var documents = DocumentsCache.shared
     
     var body: some Scene {
         WindowGroup {

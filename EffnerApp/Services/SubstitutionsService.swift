@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 class SubstitutionsService : ObservableObject {
     @Published var error: NetworkError?

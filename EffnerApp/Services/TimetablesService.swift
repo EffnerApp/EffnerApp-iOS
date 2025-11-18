@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 class TimetablesService : ObservableObject {
     @Published var error: NetworkError?

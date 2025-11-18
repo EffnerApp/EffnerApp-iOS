@@ -54,14 +54,14 @@ struct BaseContentView<Cache: CacheProtocol, Content: View, SkeletonView: View>:
                         }
                 }
                 .navigationTitle(navigationTitle)
-                .toolbarTitleDisplayMode(.inlineLarge)
+                .toolbarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarComponent()
                 }
             } else {
                 contentView
                     .navigationTitle(navigationTitle)
-                    .toolbarTitleDisplayMode(.inlineLarge)
+                    .toolbarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarComponent()
                     }

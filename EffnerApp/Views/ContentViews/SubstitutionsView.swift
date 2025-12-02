@@ -23,13 +23,13 @@ struct SubstitutionsView: View {
     
     var body: some View {
         BaseContentView(
-            cache: substitutionsCache,
+            caches: [substitutionsCache],
             navigationTitle: "Vertretungen",
             errorTitle: "Vertretungsplan nicht verfügbar",
             errorDescription: "Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: true,
             scrollToId: { cache in
-                if let plans = cache.cachedSubstitutionPlans?.plans,
+                if let plans = substitutionsCache.cachedSubstitutionPlans?.plans,
                    let firstFuturePlan = plans.first(where: { getPlanTimeType($0.date) == PlanTimeType.FUTURE }) {
                     return "futureSubstitution_\(firstFuturePlan.date)"
                 }
@@ -37,7 +37,7 @@ struct SubstitutionsView: View {
             },
             content: { cache in
                 List {
-                    if let plans = cache.cachedSubstitutionPlans?.plans {
+                    if let plans = substitutionsCache.cachedSubstitutionPlans?.plans {
                         // Vergangene Tage
                         ForEach(plans.filter { getPlanTimeType($0.date) == .PAST }, id: \.date) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .PAST)) {

@@ -19,14 +19,14 @@ struct ExamsView: View {
 
     var body: some View {
         BaseContentView(
-            cache: examsCache,
+            caches: [examsCache],
             navigationTitle: "Klausuren",
             errorTitle: "Klausuren nicht verfügbar",
             errorDescription: "Die Klausuren konnten nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: true,
             scrollToId: { _ in "futureExams" },
             content: { cache in
-                if let examResponse = cache.cachedExamResponse {
+                if let examResponse = examsCache.cachedExamResponse {
                     List {
                         Section(header: SeparatorView()) {
                             ForEach(examResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in

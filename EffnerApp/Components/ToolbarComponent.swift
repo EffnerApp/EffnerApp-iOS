@@ -8,14 +8,20 @@ import SwiftUI
 
 struct ToolbarComponent: ToolbarContent {
     @EnvironmentObject var session: UserSession
-    @EnvironmentObject var classes: ClassesCache
+    @EnvironmentObject var classesCache: ClassesCache
     @State private var isDropdownVisible: Bool = false
+    
+    init(isPreview: Bool = false) {
+        if isPreview {
+            ClassesCache.shared.saveClasses(["1a", "2b", "3c", "4d", "5e", "6f", "7g", "8h", "9i", "10j", "11k", "12l", "13m", "14n", "15o"])
+        }
+    }
 
     var body: some ToolbarContent {
         ToolbarItemGroup {
             Menu {
                 VStack {
-                    ForEach(classes.cachedClasses, id: \.self) { className in
+                    ForEach(ClassesCache.shared.cachedClasses, id: \.self) { className in
                         Button(action: {
                             session.updateUserKlass(className)
                         }) {
@@ -49,21 +55,14 @@ struct ToolbarComponent: ToolbarContent {
     }
 }
 
-private struct Toolbar_Preview: View {
-    init() {
-        ClassesCache.shared.cachedClasses = ["1a", "2b", "3c", "4d", "5e", "6f", "7g", "8h", "9i", "10j", "11k", "12l", "13m", "14n", "15o"]
-    }
-
-    var body: some View {
-        NavigationStack {
-            Text("Toolbar Preview")
-                .toolbar {
-                    ToolbarComponent()
-                }
-        }
-    }
-}
 
 #Preview {
-    Toolbar_Preview()
+    NavigationStack {
+        Text("Toolbar Preview")
+            .toolbar {
+                ToolbarComponent(isPreview: true)
+            }
+    }
+    .environmentObject(UserSession.shared)
+    .environmentObject(ClassesCache.shared)
 }

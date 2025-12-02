@@ -10,8 +10,8 @@ import SwiftUI
 @main
 struct EffnerAppApp: App {
     @StateObject private var session = UserSession.shared
-    @StateObject private var exams = ExamsCache.shared
     @StateObject private var classes = ClassesCache.shared
+    @StateObject private var exams = ExamsCache.shared
     @StateObject private var substitutions = SubstitutionsCache.shared
     @StateObject private var timetables = TimetablesCache.shared
     @StateObject private var config = ConfigCache.shared
@@ -29,8 +29,8 @@ struct EffnerAppApp: App {
                     // User hat eine Session und ist autorisiert → ContentView
                     ContentView()
                         .environmentObject(session)
-                        .environmentObject(exams)
                         .environmentObject(classes)
+                        .environmentObject(exams)
                         .environmentObject(substitutions)
                         .environmentObject(timetables)
                         .environmentObject(config)
@@ -39,8 +39,8 @@ struct EffnerAppApp: App {
                     // Keine Session oder nicht autorisiert → LoginView
                     LoginView()
                         .environmentObject(session)
-                        .environmentObject(exams)
                         .environmentObject(classes)
+                        .environmentObject(exams)
                         .environmentObject(substitutions)
                         .environmentObject(timetables)
                         .environmentObject(config)

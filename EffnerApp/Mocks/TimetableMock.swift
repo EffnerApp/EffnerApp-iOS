@@ -42,7 +42,7 @@ struct MockTimetable {
                 className: "10a"
             )
         ],
-        schedule: []
+        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
     )
     
     /// Alternative Mock-Stundenpläne für verschiedene Klassen
@@ -81,7 +81,7 @@ struct MockTimetable {
                 className: "11b"
             )
         ],
-        schedule: []
+        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
     )
     
     /// Mock mit weniger Stunden (Unterstufe)
@@ -114,7 +114,7 @@ struct MockTimetable {
                 className: "7c"
             )
         ],
-        schedule: []
+        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
     )
     
     /// Mock mit leeren Daten (für Tests)

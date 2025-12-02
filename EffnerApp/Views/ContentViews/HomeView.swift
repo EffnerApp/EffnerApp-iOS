@@ -27,7 +27,7 @@ struct HomeView: View {
             caches: [timetableCache, substitutionsCache],
             navigationTitle: "Jetzt",
             errorTitle: "error",
-            errorDescription: "errorrr") { caches in
+            errorDescription: "errorrr") { cache in
                 ScrollView {
                     VStack(spacing: 16) {
                         // Bento-Grid Layout
@@ -46,23 +46,9 @@ struct HomeView: View {
             } skeletonView: {
                 HomeSkeletonView()
             }
-
-        
-        
-    }
-    
-    // MARK: - Loading & Error States
-    
-    private var hasError: Bool {
-        timetableCache.hasError || substitutionsCache.hasError
-    }
-    
-    private var isLoading: Bool {
-        timetableCache.isEmpty && substitutionsCache.isEmpty
     }
     
     // MARK: - Computed Properties
-    
     private var todaySubstitutions: [Substitution]? {
         guard let plans = substitutionsCache.cachedResponse?.plans else { return nil }
         
@@ -93,7 +79,7 @@ struct HomeView: View {
         
         for plan in plans {
             if let planDate = dateFormatter.date(from: plan.date),
-               planDate >= today && planDate <= tomorrow {
+               planDate >= today  {
                 if let planInfos = plan.infos {
                     infos.append(contentsOf: planInfos)
                 }
@@ -102,16 +88,7 @@ struct HomeView: View {
         
         return infos
     }
-    
-    private func refreshAllData() async {
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await timetableCache.refreshCache() }
-            group.addTask { await substitutionsCache.refreshCache() }
-        }
-    }
 }
-
-
 
 // MARK: - Bento Grid Layout
 struct BentoGridLayout: View {
@@ -150,23 +127,35 @@ struct BentoGridLayout: View {
             ], spacing: 12) {
                 
                 // Platzhalter für weitere Widgets
-                QuickActionWidget(
-                    icon: "book.fill",
-                    title: "Aufgaben",
-                    color: .blue
-                )
+                GridWidget(
+                    icon: "plus.forwardslash.minus",
+                    title: "Noten",
+                    iconColor: Color.green,
+                    contextActions: []
+                ) {
+                    Text("⌀1,3")
+                        .font(.system(size: 54, weight: .bold))
+                }
                 
-                QuickActionWidget(
-                    icon: "calendar",
-                    title: "Termine",
-                    color: .green
-                )
+                GridWidget(
+                    icon: "beach.umbrella.fill",
+                    title: "Ferien",
+                    iconColor: Color.yellow,
+                ) {
+                    Text("Ostern")
+                        .font(.system(size: 42, weight: .bold))
+                }
                 
-                QuickActionWidget(
-                    icon: "bell.fill",
-                    title: "Mitteilungen",
-                    color: .orange
-                )
+                GridWidget(
+                    icon: "fork.knife",
+                    title: "Speiseplan",
+                    iconColor: Color.purple,
+                ) {
+                    Text("Lecker")
+                        .font(.system(size: 42, weight: .bold))
+                }
+                
+                
             }
         }
     }

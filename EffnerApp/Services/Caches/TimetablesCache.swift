@@ -41,7 +41,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
         
         // Mock-Daten für Test-User
         if shouldUseMockData() {
-            saveTimetables(MockTimetable.mockEmpty)
+            saveTimetables(MockTimetable.mockTimetable)
             print("Timetable cache refreshed with mock data.")
             return
         }

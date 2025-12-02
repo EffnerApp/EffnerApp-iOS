@@ -8,28 +8,46 @@ import Foundation
 import Combine
 
 
-class ClassesCache: ObservableObject {
+class ClassesCache: BaseCache<[String]> {
     static let shared = ClassesCache()
-    @Published var cachedClasses: [String] = []
     
-    private var cancellables = Set<AnyCancellable>()
+    // Convenience accessor für bessere Lesbarkeit
+    var cachedClasses: [String] {
+        cachedResponse ?? []
+    }
     
-    private func saveClasses(_ classes: [String]) {
-        DispatchQueue.main.async {
-            self.cachedClasses = classes
+    // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
+    override var hasError: Bool {
+        if case .error = loadState {
+            return true
         }
+        // Auch Error wenn Daten leer sind
+        if case .loaded(let response) = loadState, response.isEmpty {
+            return true
+        }
+        return false
+    }
+    
+    // Convenience-Methode für bessere API
+    public func saveClasses(_ classes: [String]) {
+        saveResponse(classes)
     }
 
-    public func refreshCache() async {
-        let classesService = ClassesService()
+    // Implementation der Cache-Refresh-Logik
+    override public func refreshCache() async {
+        guard isUserAuthorized() else { return }
         
-        // Fetch from network if cache is empty
+        await setLoading()
+        
+        let classesService = ClassesService()
         let result = await classesService.fetchClasses()
+        
         switch result {
         case .success(let response):
-            self.saveClasses(response)
+            saveClasses(response)
             print("Classes cache refreshed successfully.")
         case .failure(let error):
+            await setError()
             print("Failed to refresh Classes cache: \(error.localizedDescription)")
         }
     }

@@ -6,32 +6,70 @@
 //
 
 import SwiftUI
+import Combine
 
-/// Generische Basis-View für alle Content-Views (Exams, Substitutions, Timetable)
-struct BaseContentView<Cache: CacheProtocol, Content: View, SkeletonView: View>: View {
-    @ObservedObject var cache: Cache
+/// Wrapper-Klasse, um mehrere Caches als ObservableObject zu kombinieren
+class CacheCollection: ObservableObject {
+    private let caches: [any CacheProtocol]
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(caches: [any CacheProtocol]) {
+        self.caches = caches
+    }
+    
+    var hasError: Bool {
+        caches.contains { $0.hasError }
+    }
+    
+    var isEmpty: Bool {
+        caches.contains { $0.isEmpty }
+    }
+    
+    func refreshAll() async {
+        await withTaskGroup(of: Void.self) { group in
+            for cache in caches {
+                group.addTask {
+                    await cache.refreshCache()
+                }
+            }
+        }
+    }
+    
+    subscript(index: Int) -> any CacheProtocol {
+        return caches[index]
+    }
+    
+    var count: Int {
+        return caches.count
+    }
+}
+
+/// Generische Basis-View für Content-Views mit mehreren Caches
+/// Unterstützt eine beliebige Anzahl von Caches über eine Liste
+struct BaseContentView<Content: View, SkeletonView: View>: View {
+    @ObservedObject var cacheCollection: CacheCollection
     
     let navigationTitle: String
     let errorTitle: String
     let errorSystemImage: String
     let errorDescription: String
     let useScrollViewReader: Bool
-    let scrollToId: (Cache) -> String?
-    let content: (Cache) -> Content
+    let scrollToId: (CacheCollection) -> String?
+    let content: (CacheCollection) -> Content
     let skeletonView: () -> SkeletonView
     
     init(
-        cache: Cache,
+        caches: [any CacheProtocol],
         navigationTitle: String,
         errorTitle: String,
         errorSystemImage: String = "calendar.badge.exclamationmark",
         errorDescription: String,
         useScrollViewReader: Bool = false,
-        scrollToId: @escaping (Cache) -> String? = { _ in nil },
-        @ViewBuilder content: @escaping (Cache) -> Content,
+        scrollToId: @escaping (CacheCollection) -> String? = { _ in nil },
+        @ViewBuilder content: @escaping (CacheCollection) -> Content,
         @ViewBuilder skeletonView: @escaping () -> SkeletonView
     ) {
-        self.cache = cache
+        self.cacheCollection = CacheCollection(caches: caches)
         self.navigationTitle = navigationTitle
         self.errorTitle = errorTitle
         self.errorSystemImage = errorSystemImage
@@ -48,20 +86,20 @@ struct BaseContentView<Cache: CacheProtocol, Content: View, SkeletonView: View>:
                 ScrollViewReader { proxy in
                     contentView
                         .onAppear {
-                            if let id = scrollToId(cache) {
+                            if let id = scrollToId(cacheCollection) {
                                 proxy.scrollTo(id, anchor: .top)
                             }
                         }
                 }
                 .navigationTitle(navigationTitle)
-                .toolbarTitleDisplayMode(.inline)
+                .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
                     ToolbarComponent()
                 }
             } else {
                 contentView
                     .navigationTitle(navigationTitle)
-                    .toolbarTitleDisplayMode(.inline)
+                    .toolbarTitleDisplayMode(.inlineLarge)
                     .toolbar {
                         ToolbarComponent()
                     }
@@ -72,7 +110,7 @@ struct BaseContentView<Cache: CacheProtocol, Content: View, SkeletonView: View>:
     @ViewBuilder
     private var contentView: some View {
         Group {
-            if cache.hasError {
+            if cacheCollection.hasError {
                 ContentUnavailableView {
                     Label {
                         Text(errorTitle)
@@ -86,15 +124,15 @@ struct BaseContentView<Cache: CacheProtocol, Content: View, SkeletonView: View>:
                 } actions: {
                     Button("Erneut versuchen") {
                         Task {
-                            await cache.refreshCache()
+                            await cacheCollection.refreshAll()
                         }
                     }
                     .buttonStyle(.borderedProminent)
                 }
-            } else if cache.isEmpty {
+            } else if cacheCollection.isEmpty {
                 skeletonView()
             } else {
-                content(cache)
+                content(cacheCollection)
             }
         }
     }

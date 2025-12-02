@@ -12,11 +12,13 @@ struct GridWidget<Content: View>: View {
     let title: String
     let iconColor: Color
     let content: Content
+    let removePadding: Bool
     
-    init(icon: String, title: String, iconColor: Color, @ViewBuilder content: () -> Content) {
+    init(icon: String, title: String, iconColor: Color, removePadding: Bool = false, @ViewBuilder content: () -> Content) {
         self.icon = icon
         self.title = title
         self.iconColor = iconColor
+        self.removePadding = removePadding
         self.content = content()
     }
     
@@ -31,14 +33,15 @@ struct GridWidget<Content: View>: View {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundStyle(.black)
             }
+            .padding(.horizontal)
             
             // Custom Content
             content
+                .padding(.horizontal, removePadding ? 0 : nil)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(.vertical)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(UIColor.secondarySystemBackground))
@@ -47,7 +50,7 @@ struct GridWidget<Content: View>: View {
 }
 
 #Preview {
-    GridWidget(icon: "testtube.2", title: "Test", iconColor: Color.blue) {
-        EmptyView()
+    GridWidget(icon: "testtube.2", title: "Test", iconColor: Color.blue, removePadding: false) {
+        Text("Yeehaw!")
     }
 }

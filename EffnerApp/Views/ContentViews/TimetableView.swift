@@ -20,13 +20,13 @@ struct TimetableView: View {
     
     var body: some View {
         BaseContentView(
-            cache: timetablesCache,
+            caches: [timetablesCache],
             navigationTitle: "Stundenplan",
             errorTitle: "Kein Stundenplan verfügbar",
             errorDescription: "Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: false,
             content: { cache in
-                if let timetable = cache.cachedTimetableResponse?.data.first {
+                if let timetable = timetablesCache.cachedTimetableResponse?.data.first {
                     let maxLessons = getMaxLessons(from: timetable)
                     
                     ScrollView {
@@ -175,4 +175,7 @@ extension Color {
 
 #Preview {
     TimetableView(isPreview: true)
+        .environmentObject(UserSession.shared)
+        .environmentObject(ClassesCache.shared)
+        .environmentObject(TimetablesCache.shared)
 }

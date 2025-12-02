@@ -19,22 +19,36 @@ struct EffnerAppApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if let user = session.user, user.isAuthorized {
-                ContentView()
-                    .environmentObject(session)
-                    .environmentObject(exams)
-                    .environmentObject(classes)
-                    .environmentObject(substitutions)
-                    .environmentObject(timetables)
-                    .transition(.slide)
-            } else {
-                LoginView()
-                    .environmentObject(session)
-                    .environmentObject(exams)
-                    .environmentObject(classes)
-                    .environmentObject(substitutions)
-                    .environmentObject(timetables)
+            Group {
+                if session.isCheckingAuthorization {
+                    // Zeige einen Loading-State während der Authorization-Check läuft
+                    ProgressView("Anmeldung wird geprüft...")
+                        .progressViewStyle(.circular)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let user = session.user, user.isAuthorized {
+                    // User hat eine Session und ist autorisiert → ContentView
+                    ContentView()
+                        .environmentObject(session)
+                        .environmentObject(exams)
+                        .environmentObject(classes)
+                        .environmentObject(substitutions)
+                        .environmentObject(timetables)
+                        .environmentObject(config)
+                        .environmentObject(documents)
+                } else {
+                    // Keine Session oder nicht autorisiert → LoginView
+                    LoginView()
+                        .environmentObject(session)
+                        .environmentObject(exams)
+                        .environmentObject(classes)
+                        .environmentObject(substitutions)
+                        .environmentObject(timetables)
+                        .environmentObject(config)
+                        .environmentObject(documents)
+                }
             }
+            .animation(.easeIn(duration: 0.3), value: session.isCheckingAuthorization)
+            .animation(.easeIn(duration: 0.3), value: session.user?.isAuthorized)
         }
     }
         

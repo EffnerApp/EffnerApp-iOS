@@ -15,9 +15,17 @@ struct DateFormatterUtil {
         
         if let date = formatter.date(from: dateString) {
             formatter.dateFormat = "d. MMM"
+            formatter.locale = Locale(identifier: "de_DE")
             return formatter.string(from: date)
         }
         return dateString // Return the original string if parsing fails
+    }
+    
+    public static func formatToShortDate(_ date: Date = Date()) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d. MMM"
+        formatter.locale = Locale(identifier: "de_DE")
+        return formatter.string(from: date)
     }
     
     public static func formatDate(_ isoString: String) -> String {

@@ -70,13 +70,11 @@ struct HomeView: View {
         
         var infos: [String] = []
         
-        // Infos aus den nächsten 2 Tagen sammeln
+        let today = Calendar.current.startOfDay(for: Date())
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
         
-        let today = Calendar.current.startOfDay(for: Date())
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) ?? today
-        
+        // Infos aus den nächsten 2 Tagen sammeln
         for plan in plans {
             if let planDate = dateFormatter.date(from: plan.date),
                planDate >= today  {
@@ -103,7 +101,7 @@ struct BentoGridLayout: View {
             // Timeline Widget (nimmt volle Breite)
             GridWidget(
                 icon: "clock.fill",
-                title: "Timeline",
+                title: "Timeline am \(DateFormatterUtil.formatToShortDate())",
                 iconColor: .blue,
                 removePadding: true
             ) {

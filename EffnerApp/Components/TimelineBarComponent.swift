@@ -32,7 +32,7 @@ struct TimelineBarComponent: View {
                     }
                 }
             }
-            .contentMargins(.leading, 12)
+            .contentMargins(.horizontal, 12)
         } else {
             TimelineSkeletonView()
         }

@@ -42,6 +42,7 @@ struct SubstitutionsView: View {
                         ForEach(plans.filter { getPlanTimeType($0.date) == .PAST }, id: \.date) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .PAST)) {
                                 SubstitutionDayContent(plan: plan)
+                                    .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
                             .id("pastSubstitution_\(plan.date)")
                         }
@@ -49,6 +50,7 @@ struct SubstitutionsView: View {
                         ForEach(plans.filter { getPlanTimeType($0.date) == .TODAY }, id: \.date) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .TODAY)) {
                                 SubstitutionDayContent(plan: plan)
+                                    .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
                             .id("todaysSubstitution_\(plan.date)")
                         }
@@ -57,11 +59,14 @@ struct SubstitutionsView: View {
                         ForEach(plans.filter { getPlanTimeType($0.date) == .FUTURE }, id: \.date) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .FUTURE)) {
                                 SubstitutionDayContent(plan: plan)
+                                    .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
                             .id("futureSubstitution_\(plan.date)")
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .background(Color(UIColor.systemBackground))
             },
             skeletonView: {
                 SubstitutionSkeletonView()
@@ -99,7 +104,6 @@ struct SubstitutionDayContent: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Informationen")
                         .font(.headline)
-                        .padding(.top, 8)
                     
                     ForEach(infos.compactMap { $0 }, id: \.self) { info in
                         HStack(alignment: .top) {
@@ -120,7 +124,6 @@ struct SubstitutionDayContent: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Abwesende Klassen")
                         .font(.headline)
-                        .padding(.top, 8)
                     
                     ForEach(plan.absent) { absent in
                         HStack {
@@ -144,10 +147,13 @@ struct SubstitutionDayContent: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Vertretungen")
                         .font(.headline)
-                        .padding(.top, 8)
                     
-                    ForEach(substitutions.compactMap { $0 }) { substitution in
-                        SubstitutionRowView(substitution: substitution)
+                    let validSubstitutions = substitutions.compactMap { $0 }
+                    ForEach(Array(validSubstitutions.enumerated()), id: \.element.id) { index, substitution in
+                        SubstitutionRowView(
+                            substitution: substitution,
+                            isLast: index == validSubstitutions.count - 1
+                        )
                     }
                 }
                 .padding(.horizontal, 12)
@@ -159,6 +165,7 @@ struct SubstitutionDayContent: View {
 
 struct SubstitutionRowView: View {
     let substitution: Substitution
+    let isLast: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -195,22 +202,27 @@ struct SubstitutionRowView: View {
                     // Raum und Info
                     HStack(spacing: 8) {
                         if let room = substitution.room {
-                            Label(room, systemImage: "door.left.hand.open")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            HStack(spacing: 4) {
+                                Image(systemName: "door.left.hand.open")
+                                    .font(.subheadline)
+                                    .foregroundColor(.orange)
+                                Text(room)
+                                    .font(.subheadline)
+                            }
                         }
                         
                         if let info = substitution.info {
                             Text(info)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
                         }
                     }
                 }
             }
             .padding(.vertical, 4)
             
-            Divider()
+            if !isLast {
+                Divider()
+            }
         }
     }
 }
@@ -227,7 +239,7 @@ struct SubstitutionSeparatorView: View {
             } else if planTimeType == .TODAY {
                 Text("Heute")
                     .font(.headline)
-            } else {
+            } else if planTimeType == .FUTURE {
                 Text("Zukünftige Tage")
                     .font(.headline)
             }
@@ -240,10 +252,12 @@ struct SubstitutionSeparatorView: View {
         }
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemGroupedBackground))
     }
 }
 
 #Preview {
     SubstitutionsView(isPreview: true)
+        .environmentObject(SubstitutionsCache.shared)
+        .environmentObject(UserSession.shared)
+        .environmentObject(ClassesCache.shared)
 }

@@ -31,6 +31,7 @@ struct ExamsView: View {
                         Section(header: SeparatorView()) {
                             ForEach(examResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
                                 ExamRowView(exam: exam)
+                                    .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
                         }
                         .id("pastExams")
@@ -38,10 +39,13 @@ struct ExamsView: View {
                         Section(header: SeparatorView(isPast: false)) {
                             ForEach(examResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
                                 ExamRowView(exam: exam)
+                                    .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
                         }
                         .id("futureExams")
                     }
+                    .scrollContentBackground(.hidden)
+                    .background(Color(UIColor.systemBackground))
                 }
             },
             skeletonView: {
@@ -113,10 +117,12 @@ struct SeparatorView: View {
         }
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(UIColor.systemGroupedBackground))
     }
 }
 
 #Preview {
     ExamsView(isPreview: true)
+        .environmentObject(UserSession.shared)
+        .environmentObject(ClassesCache.shared)
+        .environmentObject(ExamsCache.shared)
 }

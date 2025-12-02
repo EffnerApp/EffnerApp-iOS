@@ -17,26 +17,54 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Timeline-Leiste (horizontaler Tagesüberblick)
-                    TimelineBarView(
-                        timetable: timetableCache.cachedResponse?.data.first,
-                        schedule: timetableCache.cachedResponse?.schedule,
-                        substitutions: todaySubstitutions,
-                        currentTime: currentTime
-                    )
-                    .padding(.horizontal)
-                    
-                    // Bento-Grid Layout
-                    BentoGridLayout(
-                        upcomingExams: upcomingExams,
-                        importantInfos: importantInfos,
-                        todaySubstitutions: todaySubstitutions
-                    )
-                    .padding(.horizontal)
+            Group {
+                if hasError {
+                    ContentUnavailableView {
+                        Label {
+                            Text("Keine Verbindung")
+                        } icon: {
+                            Image(systemName: "wifi.slash")
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.yellow, .orange)
+                        }
+                    } description: {
+                        Text("Die Daten konnten nicht geladen werden. Bitte überprüfe deine Internetverbindung.")
+                    } actions: {
+                        Button("Erneut versuchen") {
+                            Task {
+                                await refreshAllData()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else if isLoading {
+                    HomeSkeletonView()
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Timeline-Leiste (horizontaler Tagesüberblick)
+                            TimelineBarView(
+                                timetable: timetableCache.cachedResponse?.data.first,
+                                schedule: timetableCache.cachedResponse?.schedule,
+                                substitutions: todaySubstitutions,
+                                currentTime: currentTime
+                            )
+                            .padding(.horizontal)
+                            
+                            // Bento-Grid Layout
+                            BentoGridLayout(
+                                upcomingExams: upcomingExams,
+                                importantInfos: importantInfos,
+                                todaySubstitutions: todaySubstitutions
+                            )
+                            .padding(.horizontal)
+                        }
+                        .padding(.vertical)
+                    }
+                    .refreshable {
+                        await refreshAllData()
+                    }
                 }
-                .padding(.vertical)
             }
             .navigationTitle("Jetzt")
             .toolbarTitleDisplayMode(.large)
@@ -46,10 +74,17 @@ struct HomeView: View {
             .onReceive(timer) { _ in
                 currentTime = Date()
             }
-            .refreshable {
-                await refreshAllData()
-            }
         }
+    }
+    
+    // MARK: - Loading & Error States
+    
+    private var hasError: Bool {
+        timetableCache.hasError || substitutionsCache.hasError || examsCache.hasError
+    }
+    
+    private var isLoading: Bool {
+        timetableCache.isEmpty && substitutionsCache.isEmpty && examsCache.isEmpty
     }
     
     // MARK: - Computed Properties
@@ -315,6 +350,47 @@ struct TimelineSkeletonView: View {
                         .frame(width: 100, height: 80)
                 }
             }
+        }
+    }
+}
+
+// MARK: - Home Skeleton View
+struct HomeSkeletonView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Timeline Skeleton
+                VStack(alignment: .leading, spacing: 12) {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.gray.opacity(0.2))
+                        .frame(width: 80, height: 20)
+                    
+                    TimelineSkeletonView()
+                }
+                .padding(.horizontal)
+                
+                // Bento Grid Skeleton
+                VStack(spacing: 12) {
+                    // Wichtige Infos Skeleton
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.gray.opacity(0.2))
+                        .frame(height: 120)
+                    
+                    // Grid Skeleton
+                    LazyVGrid(columns: [
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12)
+                    ], spacing: 12) {
+                        ForEach(0..<4) { _ in
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.gray.opacity(0.2))
+                                .frame(height: 100)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.vertical)
         }
     }
 }

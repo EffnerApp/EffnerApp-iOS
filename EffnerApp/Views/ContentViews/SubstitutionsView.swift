@@ -99,64 +99,78 @@ struct SubstitutionDayContent: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Informationen
-            if let infos = plan.infos, !infos.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Informationen")
-                        .font(.headline)
-                    
-                    ForEach(infos.compactMap { $0 }, id: \.self) { info in
-                        HStack(alignment: .top) {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                                .font(.system(size: 14))
-                            Text(info)
-                                .font(.subheadline)
+            // Prüfen ob es irgendwelche Ereignisse gibt
+            let hasInfos = plan.infos?.contains(where: { !$0.isEmpty }) ?? false
+            let hasAbsent = !plan.absent.isEmpty
+            let hasSubstitutions = !(plan.substitutions?.isEmpty ?? true)
+            let hasAnyEvents = hasInfos || hasAbsent || hasSubstitutions
+            
+            if !hasAnyEvents {
+                // Keine Ereignisse
+                Label("Keinerlei Ereignisse", systemImage: "text.page.slash")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 16)
+            } else {
+                // Informationen
+                if hasInfos, let infos = plan.infos {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Informationen")
+                            .font(.headline)
+                        
+                        ForEach(infos.filter { !$0.isEmpty }, id: \.self) { info in
+                            HStack(alignment: .top) {
+                                Image(systemName: "info.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 14))
+                                Text(info)
+                                    .font(.subheadline)
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 8)
-            }
-            
-            // Abwesende Klassen
-            if !plan.absent.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Abwesende Klassen")
-                        .font(.headline)
-                    
-                    ForEach(plan.absent) { absent in
-                        HStack {
-                            Text(absent.className)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            Text("•")
-                                .foregroundColor(.secondary)
-                            Text("Stunden: \(absent.periods)")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                
+                // Abwesende Klassen
+                if hasAbsent {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Abwesende Klassen")
+                            .font(.headline)
+                        
+                        ForEach(plan.absent) { absent in
+                            HStack {
+                                Text(absent.className)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text("•")
+                                    .foregroundColor(.secondary)
+                                Text("Stunden: \(absent.periods)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 8)
-            }
-            
-            // Vertretungen
-            if let substitutions = plan.substitutions, !substitutions.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Vertretungen")
-                        .font(.headline)
-                    
-                    let validSubstitutions = substitutions.compactMap { $0 }
-                    ForEach(Array(validSubstitutions.enumerated()), id: \.element.id) { index, substitution in
-                        SubstitutionRowView(
-                            substitution: substitution,
-                            isLast: index == validSubstitutions.count - 1
-                        )
+                
+                // Vertretungen
+                if hasSubstitutions, let substitutions = plan.substitutions {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Vertretungen")
+                            .font(.headline)
+                        
+                        ForEach(Array(substitutions.enumerated()), id: \.element.id) { index, substitution in
+                            SubstitutionRowView(
+                                substitution: substitution,
+                                isLast: index == substitutions.count - 1
+                            )
+                        }
                     }
+                    .padding(.horizontal, 12)
                 }
-                .padding(.horizontal, 12)
             }
         }
         .padding(.vertical, 8)

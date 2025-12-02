@@ -7,21 +7,6 @@
 
 import SwiftUI
 
-struct FourthView: View {
-    var body: some View {
-        NavigationStack {
-            Group {
-                Text("Fourth View")
-            }
-            .navigationTitle("Fourth")
-            .toolbarTitleDisplayMode(.inlineLarge)
-            .toolbar {
-                ToolbarComponent()
-            }
-        }
-    }
-}
-
 struct ContentView: View {
     @EnvironmentObject private var substitutionsCache: SubstitutionsCache
     
@@ -30,8 +15,8 @@ struct ContentView: View {
             TabView {
                 HomeView()
                     .tabItem {
-                        Image(systemName: "house")
-                        Text("Home")
+                        Image(systemName: "waveform.path.ecg.text.rtl")
+                        Text("Jetzt")
                     }
                 SubstitutionsView()
                     .tabItem {

@@ -18,6 +18,8 @@ class UserSession: ObservableObject {
         }
     }
     
+    var isCheckingAuthorization: Bool = true
+    
     // Helper method to update class and trigger cache refresh
     @MainActor
     func updateUserKlass(_ newKlass: String) {
@@ -37,6 +39,7 @@ class UserSession: ObservableObject {
         
         guard let user else {
             print("No user found in storage.")
+            isCheckingAuthorization = false
             return
         }
         
@@ -52,6 +55,7 @@ class UserSession: ObservableObject {
                     print("Authorization failed with error: \(error)")
                     self.user = nil
                 }
+            self.isCheckingAuthorization = false
         }
         
     }

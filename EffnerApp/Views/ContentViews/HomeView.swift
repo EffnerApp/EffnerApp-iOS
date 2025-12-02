@@ -12,6 +12,15 @@ struct HomeView: View {
     @ObservedObject var substitutionsCache = SubstitutionsCache.shared
     @ObservedObject var examsCache = ExamsCache.shared
     
+    init(isPreview: Bool = false) {
+        if isPreview {
+            ExamsCache.shared.saveExams(MockExam.mockExams)
+            TimetablesCache.shared.saveTimetables(MockTimetable.mockTimetable)
+            SubstitutionsCache.shared.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
+        }
+    }
+
+    
     @State private var currentTime = Date()
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
@@ -61,13 +70,11 @@ struct HomeView: View {
                         }
                         .padding(.vertical)
                     }
-                    .refreshable {
-                        await refreshAllData()
-                    }
+                    .scrollBounceBehavior(.basedOnSize)
                 }
             }
             .navigationTitle("Jetzt")
-            .toolbarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {
                 ToolbarComponent()
             }
@@ -171,26 +178,30 @@ struct TimelineBarView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Heute")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+
             
             if let timetable = timetable {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 2) {
-                        ForEach(Array(todayLessons.enumerated()), id: \.offset) { index, subject in
-                            TimelineSubjectCard(
-                                subject: subject,
-                                period: index + 1,
-                                color: subjectColor(for: subject, in: timetable),
-                                hasSubstitution: hasSubstitutionForPeriod(index + 1),
-                                timeRange: timeRangeForPeriod(index),
-                                isCurrent: isCurrentLesson(period: index)
-                            )
+                VStack {
+                    Text("Timeline")
+                        .font(.headline)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 2) {
+                            ForEach(Array(todayLessons.enumerated()), id: \.offset) { index, subject in
+                                TimelineSubjectCard(
+                                    subject: subject,
+                                    period: index + 1,
+                                    color: subjectColor(for: subject, in: timetable),
+                                    hasSubstitution: hasSubstitutionForPeriod(index + 1),
+                                    timeRange: timeRangeForPeriod(index),
+                                    isCurrent: isCurrentLesson(period: index)
+                                )
+                            }
                         }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
                     }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 16)
+
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -233,46 +244,53 @@ struct TimelineBarView: View {
     }
     
     private func timeRangeForPeriod(_ period: Int) -> String {
-        // Standardzeiten für deutsche Schulen
-        let times = [
-            "08:00-08:45",
-            "08:50-09:35",
-            "09:40-10:25",
-            "10:45-11:30",
-            "11:35-12:20",
-            "12:25-13:10",
-            "13:15-14:00",
-            "14:05-14:50",
-            "14:55-15:40"
-        ]
+        guard let schedule = schedule else { return "" }
         
-        if period < times.count {
-            return times[period]
+        // Der Schedule enthält Start- und Endzeiten in Paaren: [start, end, start, end, ...]
+        let startIndex = period * 2
+        let endIndex = startIndex + 1
+        
+        guard endIndex < schedule.count,
+              let startTime = schedule[startIndex],
+              let endTime = schedule[endIndex],
+              startTime.count == 2,
+              endTime.count == 2 else {
+            return ""
         }
-        return ""
+        
+        let startHour = startTime[0]
+        let startMin = startTime[1]
+        let endHour = endTime[0]
+        let endMin = endTime[1]
+        
+        return String(format: "%02d:%02d-%02d:%02d", startHour, startMin, endHour, endMin)
     }
     
     private func isCurrentLesson(period: Int) -> Bool {
+        guard let schedule = schedule else { return false }
+        
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: currentTime)
         let minute = calendar.component(.minute, from: currentTime)
         
-        // Schulzeiten-Mapping
-        let lessonTimes = [
-            (8, 0, 8, 45),   // 1. Stunde
-            (8, 50, 9, 35),  // 2. Stunde
-            (9, 40, 10, 25), // 3. Stunde
-            (10, 45, 11, 30),// 4. Stunde
-            (11, 35, 12, 20),// 5. Stunde
-            (12, 25, 13, 10),// 6. Stunde
-            (13, 15, 14, 0), // 7. Stunde
-            (14, 5, 14, 50), // 8. Stunde
-            (14, 55, 15, 40) // 9. Stunde
-        ]
+        // Der Schedule enthält Start- und Endzeiten in Paaren: [start, end, start, end, ...]
+        // period ist 0-basiert, daher: Stunde 0 = schedule[0] bis schedule[1]
+        let startIndex = period * 2
+        let endIndex = startIndex + 1
         
-        guard period < lessonTimes.count else { return false }
+        guard endIndex < schedule.count,
+              let startTime = schedule[startIndex],
+              let endTime = schedule[endIndex],
+              startTime.count == 2,
+              endTime.count == 2 else {
+            return false
+        }
         
-        let (startHour, startMin, endHour, endMin) = lessonTimes[period]
+        let startHour = startTime[0]
+        let startMin = startTime[1]
+        let endHour = endTime[0]
+        let endMin = endTime[1]
+        
         let currentMinutes = hour * 60 + minute
         let startMinutes = startHour * 60 + startMin
         let endMinutes = endHour * 60 + endMin
@@ -339,61 +357,7 @@ struct TimelineSubjectCard: View {
     }
 }
 
-// MARK: - Timeline Skeleton View
-struct TimelineSkeletonView: View {
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(0..<6) { _ in
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.gray.opacity(0.2))
-                        .frame(width: 100, height: 80)
-                }
-            }
-        }
-    }
-}
 
-// MARK: - Home Skeleton View
-struct HomeSkeletonView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Timeline Skeleton
-                VStack(alignment: .leading, spacing: 12) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.gray.opacity(0.2))
-                        .frame(width: 80, height: 20)
-                    
-                    TimelineSkeletonView()
-                }
-                .padding(.horizontal)
-                
-                // Bento Grid Skeleton
-                VStack(spacing: 12) {
-                    // Wichtige Infos Skeleton
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.gray.opacity(0.2))
-                        .frame(height: 120)
-                    
-                    // Grid Skeleton
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 12),
-                        GridItem(.flexible(), spacing: 12)
-                    ], spacing: 12) {
-                        ForEach(0..<4) { _ in
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(.gray.opacity(0.2))
-                                .frame(height: 100)
-                        }
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding(.vertical)
-        }
-    }
-}
 
 // MARK: - Bento Grid Layout
 struct BentoGridLayout: View {
@@ -448,22 +412,18 @@ struct BentoGridLayout: View {
     }
 }
 
+
+
 // MARK: - Important Info Widget
 struct ImportantInfoWidget: View {
     let infos: [String]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-                    .font(.title3)
-                
-                Text("Wichtig")
-                    .font(.headline)
-                    .fontWeight(.bold)
-            }
-            
+        GridWidget(
+            icon: "exclamationmark.triangle.fill",
+            title: "Wichtig",
+            iconColor: .orange
+        ) {
             ForEach(Array(infos.prefix(3).enumerated()), id: \.offset) { _, info in
                 HStack(alignment: .top, spacing: 8) {
                     Circle()
@@ -477,16 +437,6 @@ struct ImportantInfoWidget: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.orange.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(.orange.opacity(0.3), lineWidth: 1)
-                )
-        )
     }
 }
 
@@ -506,17 +456,11 @@ struct NextExamWidget: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "doc.text.fill")
-                    .foregroundStyle(.red)
-                    .font(.title3)
-                
-                Text("Nächste Klausur")
-                    .font(.headline)
-                    .fontWeight(.bold)
-            }
-            
+        GridWidget(
+            icon: "doc.text.fill",
+            title: "Nächste Klausur",
+            iconColor: .red
+        ) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(exam.name)
                     .font(.title3)
@@ -543,12 +487,6 @@ struct NextExamWidget: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.red.opacity(0.08))
-        )
     }
 }
 
@@ -557,25 +495,15 @@ struct SubstitutionsWidget: View {
     let count: Int
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: "arrow.triangle.2.circlepath")
-                .foregroundStyle(.orange)
-                .font(.title2)
-            
+        GridWidget(
+            icon: "arrow.triangle.2.circlepath",
+            title: "Vertretungen",
+            iconColor: .orange
+        ) {
             Text("\(count)")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-            
-            Text("Vertretungen")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.orange.opacity(0.1))
-        )
     }
 }
 
@@ -586,27 +514,21 @@ struct QuickActionWidget: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .font(.title2)
-            
+        GridWidget(
+            icon: icon,
+            title: title,
+            iconColor: color
+        ) {
             Spacer()
-            
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 100)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(color.opacity(0.1))
-        )
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView(isPreview: true)
+        .environmentObject(SubstitutionsCache.shared)
+        .environmentObject(UserSession.shared)
+        .environmentObject(ClassesCache.shared)
+        .environmentObject(ExamsCache.shared)
+        .environmentObject(TimetablesCache.shared)
 }

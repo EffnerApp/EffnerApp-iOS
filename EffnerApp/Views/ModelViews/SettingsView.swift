@@ -91,6 +91,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Einstellungen")
             .navigationBarTitleDisplayMode(.inline)
+            .presentationDragIndicator(.visible)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: {

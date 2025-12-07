@@ -13,27 +13,39 @@ struct GridWidgetAction {
     let action: () -> Void
 }
 
-struct GridWidget<Content: View>: View {
+struct GridWidget<Content: View, Preview: View>: View {
     let icon: String
     let title: String
     let iconColor: Color
     let content: Content
+    let preview: Preview?
     let removePadding: Bool
     let contextActions: [GridWidgetAction]
     
-    init(icon: String, title: String, iconColor: Color, removePadding: Bool = false, contextActions: [GridWidgetAction] = [], @ViewBuilder content: () -> Content) {
+    init(
+        icon: String,
+        title: String,
+        iconColor: Color,
+        removePadding: Bool = false,
+        contextActions: [GridWidgetAction] = [],
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder preview: () -> Preview?
+    ) {
         self.icon = icon
         self.title = title
         self.iconColor = iconColor
         self.removePadding = removePadding
         self.contextActions = contextActions
         self.content = content()
+        self.preview = preview()
     }
     
-    var body: some View {
+    var body: some View {        
         PressableComponent(contextActions: contextActions) {
             widgetContent
-        } 
+        } preview: {
+            preview
+        }
     }
     
     @ViewBuilder
@@ -65,11 +77,32 @@ struct GridWidget<Content: View>: View {
     }
 }
 
+// Extension für GridWidget ohne Preview (nutzt Content als Preview)
+extension GridWidget where Preview == Content {
+    init(
+        icon: String,
+        title: String,
+        iconColor: Color,
+        removePadding: Bool = false,
+        contextActions: [GridWidgetAction] = [],
+        @ViewBuilder content: () -> Content
+    ) {
+        self.icon = icon
+        self.title = title
+        self.iconColor = iconColor
+        self.removePadding = removePadding
+        self.contextActions = contextActions
+        self.content = content()
+        self.preview = content()
+    }
+}
+
 #Preview {
-    VStack {
+    VStack(spacing: 20) {
+        // Beispiel 1: GridWidget ohne Custom-Preview (nutzt Content als Preview)
         GridWidget(
             icon: "testtube.2",
-            title: "Test",
+            title: "Test ohne Preview",
             iconColor: Color.blue,
             removePadding: false,
             contextActions: [
@@ -78,25 +111,55 @@ struct GridWidget<Content: View>: View {
                 },
                 GridWidgetAction(title: "Teilen", icon: "square.and.arrow.up") {
                     print("Teilen gedrückt")
-                },
-                GridWidgetAction(title: "Löschen", icon: "trash") {
-                    print("Löschen gedrückt")
                 }
             ]
         ) {
             Text("Yeehaw!")
+                .font(.largeTitle)
         }
         
+        // Beispiel 2: GridWidget mit Custom-Preview
         GridWidget(
-            icon: "testtube.2",
-            title: "Test2",
-            iconColor: Color.blue,
+            icon: "photo.fill",
+            title: "Test mit Preview",
+            iconColor: Color.purple,
             removePadding: false,
             contextActions: [
+                GridWidgetAction(title: "Vergrößern", icon: "arrow.up.left.and.arrow.down.right") {
+                    print("Vergrößern gedrückt")
+                }
             ]
         ) {
-            Text("Yeehaw!")
+            // Normaler Content
+            Text("Drücke lange!")
+                .font(.title)
+        } preview: {
+            // Custom Preview für Long-Press
+            VStack(spacing: 16) {
+                Image(systemName: "photo.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.purple)
+                Text("Größere Preview!")
+                    .font(.title)
+                    .fontWeight(.bold)
+                Text("Dies ist eine spezielle Preview-Ansicht")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(40)
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(20)
+        }
+        
+        // Beispiel 3: GridWidget ohne Context-Actions
+        GridWidget(
+            icon: "star.fill",
+            title: "Ohne Actions",
+            iconColor: Color.yellow
+        ) {
+            Text("Keine Actions")
+                .font(.title2)
         }
     }
-
+    .padding()
 }

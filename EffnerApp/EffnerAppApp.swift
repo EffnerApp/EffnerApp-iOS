@@ -16,6 +16,7 @@ struct EffnerAppApp: App {
     @StateObject private var timetables = TimetablesCache.shared
     @StateObject private var config = ConfigCache.shared
     @StateObject private var documents = DocumentsCache.shared
+    @StateObject private var holidays = HolidaysCache.shared
     
     var body: some Scene {
         WindowGroup {
@@ -35,6 +36,7 @@ struct EffnerAppApp: App {
                         .environmentObject(timetables)
                         .environmentObject(config)
                         .environmentObject(documents)
+                        .environmentObject(holidays)
                 } else {
                     // Keine Session oder nicht autorisiert → LoginView
                     LoginView()

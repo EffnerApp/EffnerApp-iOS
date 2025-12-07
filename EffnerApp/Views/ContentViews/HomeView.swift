@@ -10,21 +10,24 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject var timetableCache = TimetablesCache.shared
     @ObservedObject var substitutionsCache = SubstitutionsCache.shared
+    @ObservedObject var holidaysCache = HolidaysCache.shared
     
     init(isPreview: Bool = false) {
         if isPreview {
             TimetablesCache.shared.saveTimetables(MockTimetable.mockTimetable)
             SubstitutionsCache.shared.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
+            HolidaysCache.shared.saveHolidays(MockHolidays.mockHolidays)
         }
     }
 
     
     @State private var currentTime = Date()
+    @State private var showHolidaysView = false
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
     var body: some View {
         BaseContentView(
-            caches: [timetableCache, substitutionsCache],
+            caches: [timetableCache, substitutionsCache, holidaysCache],
             navigationTitle: "Jetzt",
             errorTitle: "error",
             errorDescription: "errorrr") { cache in
@@ -36,7 +39,8 @@ struct HomeView: View {
                             schedule: timetableCache.cachedResponse?.schedule,
                             currentTime: currentTime,
                             importantInfos: importantInfos,
-                            todaySubstitutions: todaySubstitutions
+                            todaySubstitutions: todaySubstitutions,
+                            showHolidaysView: $showHolidaysView
                         )
                         .padding(.horizontal)
                     }
@@ -45,6 +49,10 @@ struct HomeView: View {
                 .scrollBounceBehavior(.basedOnSize)
             } skeletonView: {
                 HomeSkeletonView()
+            }
+            .sheet(isPresented: $showHolidaysView) {
+                HolidaysView()
+                    .environmentObject(holidaysCache)
             }
     }
     
@@ -95,6 +103,7 @@ struct BentoGridLayout: View {
     let currentTime: Date
     let importantInfos: [String]
     let todaySubstitutions: [Substitution]?
+    @Binding var showHolidaysView: Bool
     
     // Berechnet den nächsten verfügbaren Tag mit Unterricht
     private var nextAvailableDay: (date: Date, dayIndex: Int) {
@@ -176,16 +185,37 @@ struct BentoGridLayout: View {
                     contextActions: []
                 ) {
                     Text("⌀1,3")
-                        .font(.system(size: 54, weight: .bold))
+                        .font(.system(size: 54))
                 }
                 
                 GridWidget(
                     icon: "beach.umbrella.fill",
                     title: "Ferien",
                     iconColor: Color.yellow,
+                    contextActions: [
+                        GridWidgetAction(title: "Öffnen", icon: "eyes.inverse", action: {
+                            showHolidaysView = true
+                        })
+                    ]
                 ) {
-                    Text("Ostern")
-                        .font(.system(size: 42, weight: .bold))
+                    VStack(spacing: 4) {
+                        if let nextHoliday = getNextHoliday() {
+                            Text(nextHoliday.name)
+                                .font(.system(size: 28, weight: .semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
+                            Text(formatDateRange(start: nextHoliday.startsOn, end: nextHoliday.endsOn))
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Keine")
+                                .font(.system(size: 32))
+                        }
+                    }
+                } preview: {
+                    HolidaysView()
+                        .environmentObject(HolidaysCache.shared)
+                        .environment(UserSession.shared)
                 }
                 
                 GridWidget(
@@ -194,12 +224,69 @@ struct BentoGridLayout: View {
                     iconColor: Color.purple,
                 ) {
                     Text("Lecker")
-                        .font(.system(size: 42, weight: .bold))
+                        .font(.system(size: 42))
                 }
                 
                 
             }
         }
+    }
+    
+    // MARK: - Helper Functions
+    private func getNextHoliday() -> Holiday? {
+        guard let holidays = HolidaysCache.shared.cachedResponse?.data else { return nil }
+        
+        let now = Date()
+        let isoFormatter = ISO8601DateFormatter()
+        let germanFormatter = DateFormatter()
+        germanFormatter.dateFormat = "yyyy-MM-dd"
+        
+        // Filtere und sortiere zukünftige Ferien
+        let futureHolidays = holidays.filter { holiday in
+            if let startDate = isoFormatter.date(from: holiday.startsOn) ?? germanFormatter.date(from: holiday.startsOn) {
+                return startDate >= now
+            }
+            return false
+        }.sorted { holiday1, holiday2 in
+            let date1 = isoFormatter.date(from: holiday1.startsOn) ?? germanFormatter.date(from: holiday1.startsOn) ?? Date.distantFuture
+            let date2 = isoFormatter.date(from: holiday2.startsOn) ?? germanFormatter.date(from: holiday2.startsOn) ?? Date.distantFuture
+            return date1 < date2
+        }
+        
+        return futureHolidays.first
+    }
+    
+    private func formatDateRange(start: String, end: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        let germanFormatter = DateFormatter()
+        germanFormatter.dateFormat = "yyyy-MM-dd"
+        
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateFormat = "d. MMM"
+        displayFormatter.locale = Locale(identifier: "de_DE")
+        
+        guard let startDate = isoFormatter.date(from: start) ?? germanFormatter.date(from: start),
+              let endDate = isoFormatter.date(from: end) ?? germanFormatter.date(from: end) else {
+            return ""
+        }
+        
+        return "\(displayFormatter.string(from: startDate)) - \(displayFormatter.string(from: endDate))"
+    }
+    
+    private func formatDate(_ dateString: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        let germanFormatter = DateFormatter()
+        germanFormatter.dateFormat = "yyyy-MM-dd"
+        
+        let displayFormatter = DateFormatter()
+        displayFormatter.dateFormat = "d. MMMM yyyy"
+        displayFormatter.locale = Locale(identifier: "de_DE")
+        
+        guard let date = isoFormatter.date(from: dateString) ?? germanFormatter.date(from: dateString) else {
+            return dateString
+        }
+        
+        return displayFormatter.string(from: date)
     }
 }
 
@@ -255,4 +342,5 @@ struct QuickActionWidget: View {
         .environmentObject(ClassesCache.shared)
         .environmentObject(ExamsCache.shared)
         .environmentObject(TimetablesCache.shared)
+        .environmentObject(HolidaysCache.shared)
 }

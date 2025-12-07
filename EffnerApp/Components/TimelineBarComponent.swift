@@ -13,6 +13,7 @@ struct TimelineBarComponent: View {
     let schedule: [Array<Int>?]?
     let substitutions: [Substitution]?
     let currentTime: Date
+    var forcedDayIndex: Int? = nil
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date())
     
@@ -41,8 +42,24 @@ struct TimelineBarComponent: View {
     private var todayLessons: [String] {
         guard let timetable = timetable else { return [] }
         
-        let weekday = Calendar.current.component(.weekday, from: Date())
-        let dayIndex = weekday == 1 ? 4 : weekday - 2 // Montag = 0, Sonntag wird zu Freitag
+        // Wenn ein forcedDayIndex übergeben wurde, diesen verwenden
+        let dayIndex: Int
+        if let forced = forcedDayIndex {
+            dayIndex = forced
+        } else {
+            let weekday = Calendar.current.component(.weekday, from: Date())
+            
+            // Umrechnung: Swift weekday (1=Sonntag, 2=Montag, ..., 7=Samstag)
+            // zu Stundenplan dayIndex (0=Montag, 1=Dienstag, ..., 4=Freitag)
+            switch weekday {
+            case 2: dayIndex = 0 // Montag
+            case 3: dayIndex = 1 // Dienstag
+            case 4: dayIndex = 2 // Mittwoch
+            case 5: dayIndex = 3 // Donnerstag
+            case 6: dayIndex = 4 // Freitag
+            default: dayIndex = -1 // Samstag (7) und Sonntag (1) haben keinen Unterricht
+            }
+        }
         
         guard dayIndex >= 0 && dayIndex < timetable.lessons.count else { return [] }
         

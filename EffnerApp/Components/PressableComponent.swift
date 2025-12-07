@@ -35,6 +35,9 @@ struct PressableComponent<Content: View, Preview: View>: View {
                 let impactFeedback = UIImpactFeedbackGenerator(style: hapticStyle)
                 impactFeedback.impactOccurred()
             }
+            .onTapGesture {
+                contextActions.first?.action()
+            }
             .contextMenu {
                 if(!contextActions.isEmpty) {
                     ForEach(contextActions.indices, id: \.self) { index in

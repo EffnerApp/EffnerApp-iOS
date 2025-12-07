@@ -10,6 +10,7 @@ struct ToolbarComponent: ToolbarContent {
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var classesCache: ClassesCache
     @State private var isDropdownVisible: Bool = false
+    @State private var isSettingsPresented: Bool = false
     
     init(isPreview: Bool = false) {
         if isPreview {
@@ -47,9 +48,12 @@ struct ToolbarComponent: ToolbarContent {
             }
             
             Button(action: {
-                session.logout()
+                isSettingsPresented = true
             }) {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Image(systemName: "gearshape")
+            }
+            .sheet(isPresented: $isSettingsPresented) {
+                SettingsView()
             }
         }
     }

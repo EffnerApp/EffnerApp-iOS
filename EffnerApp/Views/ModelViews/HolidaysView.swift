@@ -26,6 +26,7 @@ struct HolidaysView: View {
             errorDescription: "Die Ferien konnten nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: true,
             scrollToId: { _ in "futureHolidays" },
+            isModal: true,
             content: { cache in
                 if let holidayResponse = holidaysCache.cachedHolidaysResponse {
                     List {

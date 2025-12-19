@@ -10,6 +10,12 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var substitutionsCache: SubstitutionsCache
     
+    init(isPreview: Bool = false) {
+        if isPreview {
+            SubstitutionsCache.shared.saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             TabView {
@@ -74,5 +80,8 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(isPreview: true)
+        .environmentObject(SubstitutionsCache.shared)
+        .environmentObject(UserSession.shared)
+        .environmentObject(ClassesCache.shared)
 }

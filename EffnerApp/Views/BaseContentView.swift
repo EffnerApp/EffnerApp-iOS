@@ -55,6 +55,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
     let errorDescription: String
     let useScrollViewReader: Bool
     let scrollToId: (CacheCollection) -> String?
+    let isModal: Bool
     let content: (CacheCollection) -> Content
     let skeletonView: () -> SkeletonView
     
@@ -66,6 +67,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
         errorDescription: String,
         useScrollViewReader: Bool = false,
         scrollToId: @escaping (CacheCollection) -> String? = { _ in nil },
+        isModal: Bool = false,
         @ViewBuilder content: @escaping (CacheCollection) -> Content,
         @ViewBuilder skeletonView: @escaping () -> SkeletonView
     ) {
@@ -76,6 +78,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
         self.errorDescription = errorDescription
         self.useScrollViewReader = useScrollViewReader
         self.scrollToId = scrollToId
+        self.isModal = isModal
         self.content = content
         self.skeletonView = skeletonView
     }
@@ -92,16 +95,26 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
                         }
                 }
                 .navigationTitle(navigationTitle)
-                .toolbarTitleDisplayMode(.inlineLarge)
+                .presentationDragIndicator(isModal ? .visible : .hidden)
+                .toolbarTitleDisplayMode(isModal ? .inline : .inlineLarge)
                 .toolbar {
-                    ToolbarComponent()
+                    if isModal {
+                        ModalToolbarComponent()
+                    } else {
+                        ToolbarComponent()
+                    }
                 }
             } else {
                 contentView
                     .navigationTitle(navigationTitle)
-                    .toolbarTitleDisplayMode(.inlineLarge)
+                    .presentationDragIndicator(isModal ? .visible : .hidden)
+                    .toolbarTitleDisplayMode(isModal ? .inline : .inlineLarge)
                     .toolbar {
-                        ToolbarComponent()
+                        if isModal {
+                            ModalToolbarComponent()
+                        } else {
+                            ToolbarComponent()
+                        }
                     }
             }
         }

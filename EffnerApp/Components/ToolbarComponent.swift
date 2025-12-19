@@ -54,7 +54,6 @@ struct ToolbarComponent: ToolbarContent {
             }
             .sheet(isPresented: $isSettingsPresented) {
                 SettingsView()
-                    
             }
         }
     }

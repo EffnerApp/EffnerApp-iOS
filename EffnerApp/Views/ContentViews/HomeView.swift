@@ -30,7 +30,7 @@ struct HomeView: View {
             caches: [timetableCache, substitutionsCache, holidaysCache],
             navigationTitle: "Jetzt",
             errorTitle: "error",
-            errorDescription: "errorrr") { cache in
+            errorDescription: "could not load home view") { cache in
                 ScrollView {
                     VStack(spacing: 16) {
                         // Bento-Grid Layout

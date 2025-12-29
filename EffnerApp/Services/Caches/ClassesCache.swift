@@ -35,8 +35,6 @@ class ClassesCache: BaseCache<[String]> {
 
     // Implementation der Cache-Refresh-Logik
     override public func refreshCache() async {
-        guard isUserAuthorized() else { return }
-        
         await setLoading()
         
         let classesService = ClassesService()

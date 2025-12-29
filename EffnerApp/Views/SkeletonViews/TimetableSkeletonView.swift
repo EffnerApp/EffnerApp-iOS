@@ -44,6 +44,7 @@ struct TimetableSkeletonView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity)
             .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)

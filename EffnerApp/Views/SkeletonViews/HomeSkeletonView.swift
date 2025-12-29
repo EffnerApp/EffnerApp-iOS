@@ -20,6 +20,7 @@ struct HomeSkeletonView: View {
                     
                     TimelineSkeletonView()
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
                 
                 // Bento Grid Skeleton
@@ -27,6 +28,7 @@ struct HomeSkeletonView: View {
                     // Wichtige Infos Skeleton
                     RoundedRectangle(cornerRadius: 16)
                         .fill(.gray.opacity(0.2))
+                        .frame(maxWidth: .infinity)
                         .frame(height: 120)
                     
                     // Grid Skeleton
@@ -41,6 +43,7 @@ struct HomeSkeletonView: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal)
             }
             .padding(.vertical)

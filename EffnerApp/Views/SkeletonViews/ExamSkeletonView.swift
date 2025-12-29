@@ -26,7 +26,9 @@ struct ExamSkeletonView: View {
                         .frame(width: 80, height: 14)
                         .animation(Animation.linear(duration: 1).repeatForever(autoreverses: true), value: isAnimating)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
             .onAppear {
                 isAnimating = true

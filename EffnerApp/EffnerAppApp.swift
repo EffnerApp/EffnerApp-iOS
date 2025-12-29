@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct EffnerAppApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @StateObject private var session = UserSession.shared
     @StateObject private var classes = ClassesCache.shared
     @StateObject private var exams = ExamsCache.shared

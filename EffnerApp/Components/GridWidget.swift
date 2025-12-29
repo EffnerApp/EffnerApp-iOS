@@ -40,7 +40,7 @@ struct GridWidget<Content: View, Preview: View>: View {
         self.preview = preview()
     }
     
-    var body: some View {        
+    var body: some View {
         PressableComponent(contextActions: contextActions) {
             widgetContent
         } preview: {
@@ -60,6 +60,16 @@ struct GridWidget<Content: View, Preview: View>: View {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.bold)
+                
+                Spacer()
+                
+                // Zeige > Icon wenn Context-Actions vorhanden sind
+                if !contextActions.isEmpty {
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
             }
             .padding(.horizontal)
             

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct LoginView: View {
-    
     @EnvironmentObject private var classes: ClassesCache
     
     @State private var showAlert = false
@@ -83,7 +82,6 @@ struct LoginView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Login Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
-        
         .task {
             await classes.refreshCache()
             

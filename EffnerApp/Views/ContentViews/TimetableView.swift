@@ -26,7 +26,7 @@ struct TimetableView: View {
             errorDescription: "Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: false,
             content: { cache in
-                if let timetable = timetablesCache.cachedTimetableResponse?.data.first {
+                if let timetable = timetablesCache.cachedResponse?.data.first {
                     let maxLessons = getMaxLessons(from: timetable)
                     
                     ScrollView {

@@ -44,8 +44,13 @@ class ExamsCache: BaseCache<ExamsResponse> {
         
         switch result {
         case .success(let response):
-            saveExams(response)
-            print("Exams cache refreshed successfully.")
+            if !response.exams.isEmpty {
+                saveExams(response)
+                print("Exams cache refreshed successfully.")
+            } else {
+                print("No exams available.")
+                await setError()
+            }
         case .failure(let error):
             await setError()
             print("Failed to refresh exams cache: \(error.localizedDescription)")

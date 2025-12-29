@@ -11,11 +11,6 @@ import Combine
 class TimetablesCache: BaseCache<TimetableResponse> {
     static let shared = TimetablesCache()
     
-    // Convenience accessor für bessere Lesbarkeit
-    var cachedTimetableResponse: TimetableResponse? {
-        cachedResponse
-    }
-    
     // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
     override var hasError: Bool {
         if case .error = loadState {

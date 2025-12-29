@@ -9,35 +9,98 @@ import SwiftUI
 
 // MARK: - Timeline Bar View
 struct TimelineBarComponent: View {
-    let timetable: Timetable?
-    let schedule: [Array<Int>?]?
+    @ObservedObject var timetableCache = TimetablesCache.shared
     let substitutions: [Substitution]?
     let currentTime: Date
-    var forcedDayIndex: Int? = nil
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date())
     
+    private var timetable: Timetable? {
+        timetableCache.cachedResponse?.data.first
+    }
+    
+    private var schedule: [Array<Int>?]? {
+        timetableCache.cachedResponse?.schedule
+    }
+    
+    private var forcedDayIndex: Int? {
+        nextAvailableDay.dayIndex
+    }
+    
     var body: some View {
-        if let timetable = timetable {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 3) {
-                    ForEach(Array(todayLessons.enumerated()), id: \.offset) { index, subject in
-                        TimelineSubjectCard(
-                            subject: subject,
-                            period: index + 1,
-                            color: subjectColor(for: subject, in: timetable),
-                            hasSubstitution: hasSubstitutionForPeriod(index + 1),
-                            timeRange: timeRangeForPeriod(index),
-                            isCurrent: isCurrentLesson(period: index)
-                        )
+        // Timeline Widget (nimmt volle Breite)
+        GridWidget(
+            icon: "clock.fill",
+            title: "Timeline am \(DateFormatterUtil.formatToShortDate(nextAvailableDay.date))",
+            iconColor: .blue,
+            removePadding: true
+        ) {
+            if let timetable = timetable {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 3) {
+                        ForEach(Array(todayLessons.enumerated()), id: \.offset) { index, subject in
+                            TimelineSubjectCard(
+                                subject: subject,
+                                period: index + 1,
+                                color: subjectColor(for: subject, in: timetable),
+                                hasSubstitution: hasSubstitutionForPeriod(index + 1),
+                                timeRange: timeRangeForPeriod(index),
+                                isCurrent: isCurrentLesson(period: index)
+                            )
+                        }
                     }
                 }
+                .contentMargins(.horizontal, 12)
+            } else {
+                TimelineSkeletonView()
             }
-            .contentMargins(.horizontal, 12)
-        } else {
-            TimelineSkeletonView()
         }
     }
+    
+    
+    // Berechnet den nächsten verfügbaren Tag mit Unterricht
+    private var nextAvailableDay: (date: Date, dayIndex: Int) {
+        guard let timetable = timetable else {
+            return (Date(), 0)
+        }
+        
+        let calendar = Calendar.current
+        var checkDate = Date()
+        
+        // Maximal 7 Tage in die Zukunft schauen
+        for _ in 0..<7 {
+            let weekday = calendar.component(.weekday, from: checkDate)
+            
+            // Umrechnung: Swift weekday (1=Sonntag, 2=Montag, ..., 7=Samstag)
+            // zu Stundenplan dayIndex (0=Montag, 1=Dienstag, ..., 4=Freitag)
+            var dayIndex: Int
+            switch weekday {
+            case 2: dayIndex = 0 // Montag
+            case 3: dayIndex = 1 // Dienstag
+            case 4: dayIndex = 2 // Mittwoch
+            case 5: dayIndex = 3 // Donnerstag
+            case 6: dayIndex = 4 // Freitag
+            default: dayIndex = -1 // Samstag (7) und Sonntag (1) haben keinen Unterricht
+            }
+            
+            // Prüfen ob der Tag ein Schultag ist und Unterricht hat
+            if dayIndex >= 0 && dayIndex < timetable.lessons.count {
+                let lessons = timetable.lessons[dayIndex].filter { !$0.isEmpty }
+                if !lessons.isEmpty {
+                    return (checkDate, dayIndex)
+                }
+            }
+            
+            // Nächsten Tag prüfen
+            if let nextDay = calendar.date(byAdding: .day, value: 1, to: checkDate) {
+                checkDate = nextDay
+            }
+        }
+        
+        // Fallback auf Montag
+        return (Date(), 0)
+    }
+
     
     private var todayLessons: [String] {
         guard let timetable = timetable else { return [] }

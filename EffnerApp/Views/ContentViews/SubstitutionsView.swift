@@ -26,7 +26,7 @@ struct SubstitutionsView: View {
             caches: [substitutionsCache],
             navigationTitle: "Vertretungen",
             errorTitle: "Vertretungsplan nicht verfügbar",
-            errorDescription: "Der Vertretungsplan konnte nicht geladen werden. Bitte versuche es später erneut.",
+            errorDescription: "Der Vertretungsplan konnte nicht geladen werden oder steht derzeit nicht zur Verfügung (z.B. Ferien). Bitte versuche es später erneut.",
             useScrollViewReader: true,
             scrollToId: { cache in
                 if let plans = substitutionsCache.cachedSubstitutionPlans?.plans,

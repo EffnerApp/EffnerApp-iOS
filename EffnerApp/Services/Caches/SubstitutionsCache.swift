@@ -44,6 +44,7 @@ class SubstitutionsCache: BaseCache<SubstitutionResponse> {
                 print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
             } else {
                 print("No substitution plans available.")
+                await setError()
             }
         case .failure(let error):
             await setError()

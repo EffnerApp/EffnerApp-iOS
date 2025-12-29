@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct HomeView: View {
-    @ObservedObject var timetableCache = TimetablesCache.shared
     @ObservedObject var substitutionsCache = SubstitutionsCache.shared
     @ObservedObject var holidaysCache = HolidaysCache.shared
     
@@ -27,7 +26,7 @@ struct HomeView: View {
     
     var body: some View {
         BaseContentView(
-            caches: [timetableCache, substitutionsCache, holidaysCache],
+            caches: [holidaysCache],
             navigationTitle: "Jetzt",
             errorTitle: "error",
             errorDescription: "could not load home view") { cache in
@@ -35,8 +34,6 @@ struct HomeView: View {
                     VStack(spacing: 16) {
                         // Bento-Grid Layout
                         BentoGridLayout(
-                            timetable: timetableCache.cachedResponse?.data.first,
-                            schedule: timetableCache.cachedResponse?.schedule,
                             currentTime: currentTime,
                             importantInfos: importantInfos,
                             todaySubstitutions: todaySubstitutions,
@@ -98,73 +95,17 @@ struct HomeView: View {
 
 // MARK: - Bento Grid Layout
 struct BentoGridLayout: View {
-    let timetable: Timetable?
-    let schedule: [Array<Int>?]?
     let currentTime: Date
     let importantInfos: [String]
     let todaySubstitutions: [Substitution]?
     @Binding var showHolidaysView: Bool
-    
-    // Berechnet den nächsten verfügbaren Tag mit Unterricht
-    private var nextAvailableDay: (date: Date, dayIndex: Int) {
-        guard let timetable = timetable else {
-            return (Date(), 0)
-        }
         
-        let calendar = Calendar.current
-        var checkDate = Date()
-        
-        // Maximal 7 Tage in die Zukunft schauen
-        for _ in 0..<7 {
-            let weekday = calendar.component(.weekday, from: checkDate)
-            
-            // Umrechnung: Swift weekday (1=Sonntag, 2=Montag, ..., 7=Samstag)
-            // zu Stundenplan dayIndex (0=Montag, 1=Dienstag, ..., 4=Freitag)
-            var dayIndex: Int
-            switch weekday {
-            case 2: dayIndex = 0 // Montag
-            case 3: dayIndex = 1 // Dienstag
-            case 4: dayIndex = 2 // Mittwoch
-            case 5: dayIndex = 3 // Donnerstag
-            case 6: dayIndex = 4 // Freitag
-            default: dayIndex = -1 // Samstag (7) und Sonntag (1) haben keinen Unterricht
-            }
-            
-            // Prüfen ob der Tag ein Schultag ist und Unterricht hat
-            if dayIndex >= 0 && dayIndex < timetable.lessons.count {
-                let lessons = timetable.lessons[dayIndex].filter { !$0.isEmpty }
-                if !lessons.isEmpty {
-                    return (checkDate, dayIndex)
-                }
-            }
-            
-            // Nächsten Tag prüfen
-            if let nextDay = calendar.date(byAdding: .day, value: 1, to: checkDate) {
-                checkDate = nextDay
-            }
-        }
-        
-        // Fallback auf Montag
-        return (Date(), 0)
-    }
-    
     var body: some View {
         VStack(spacing: 12) {
-            // Timeline Widget (nimmt volle Breite)
-            GridWidget(
-                icon: "clock.fill",
-                title: "Timeline am \(DateFormatterUtil.formatToShortDate(nextAvailableDay.date))",
-                iconColor: .blue,
-                removePadding: true
-            ) {
-                TimelineBarComponent(
-                    timetable: timetable,
-                    schedule: schedule,
-                    substitutions: todaySubstitutions,
-                    currentTime: currentTime,
-                    forcedDayIndex: nextAvailableDay.dayIndex
-                )
-            }
+            TimelineBarComponent(
+                substitutions: todaySubstitutions,
+                currentTime: currentTime,
+            )
             
             // Wichtige Infos (nimmt volle Breite, wenn vorhanden)
             if !importantInfos.isEmpty {

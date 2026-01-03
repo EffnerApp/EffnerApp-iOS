@@ -22,6 +22,7 @@ struct HomeView: View {
     
     @State private var currentTime = Date()
     @State private var showHolidaysView = false
+    @State private var showCampusCafeView = false
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
     var body: some View {
@@ -37,7 +38,8 @@ struct HomeView: View {
                             currentTime: currentTime,
                             importantInfos: importantInfos,
                             todaySubstitutions: todaySubstitutions,
-                            showHolidaysView: $showHolidaysView
+                            showHolidaysView: $showHolidaysView,
+                            showCampusCafeView: $showCampusCafeView
                         )
                         .padding(.horizontal)
                     }
@@ -50,6 +52,9 @@ struct HomeView: View {
             .sheet(isPresented: $showHolidaysView) {
                 HolidaysView()
                     .environmentObject(holidaysCache)
+            }
+            .sheet(isPresented: $showCampusCafeView) {
+                CampusCafeView()
             }
     }
     
@@ -99,6 +104,7 @@ struct BentoGridLayout: View {
     let importantInfos: [String]
     let todaySubstitutions: [Substitution]?
     @Binding var showHolidaysView: Bool
+    @Binding var showCampusCafeView: Bool
         
     var body: some View {
         VStack(spacing: 12) {
@@ -163,9 +169,14 @@ struct BentoGridLayout: View {
                     icon: "fork.knife",
                     title: "Speiseplan",
                     iconColor: Color.purple,
+                    contextActions: [
+                        GridWidgetAction(title: "Öffnen", icon: "eyes.inverse", action: {
+                            showCampusCafeView = true
+                        })
+                    ]
                 ) {
-                    Text("Lecker")
-                        .font(.system(size: 42))
+                } preview: {
+                    CampusCafeView()
                 }
                 
                 

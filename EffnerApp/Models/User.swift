@@ -86,7 +86,7 @@ class UserSession: ObservableObject {
             return nil
         }
         // Set user
-        return User(id: account, password: password, klass: classA, isAuthorized: false)
+        return User(id: account, password: password, klass: classA, isAuthorized: true)
     }
     
     @MainActor

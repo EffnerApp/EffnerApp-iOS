@@ -22,7 +22,7 @@ class CacheCollection: ObservableObject {
     }
     
     var isEmpty: Bool {
-        caches.isEmpty || caches.allSatisfy { $0.isEmpty }
+        !caches.isEmpty && caches.allSatisfy { $0.isEmpty }
     }
     
     func refreshAll() async {

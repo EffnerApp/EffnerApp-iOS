@@ -80,7 +80,7 @@ struct ExamRowView: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Text(exam.name)
-                    .font(.title2)
+                    .font(.title3)
                     .padding(.leading, 12)
 
                 HStack {

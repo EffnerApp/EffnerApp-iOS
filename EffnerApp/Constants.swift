@@ -6,7 +6,7 @@
 //
 struct Constants {
     
-    static let bundleIdentifier = "de.luisbros.EffnerApp"
+    static let bundleIdentifier = "de.effnerapp.effner"
     
     // API Base URL
     static let baseURL : String = "https://api.effner.app/v3"

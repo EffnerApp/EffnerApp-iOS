@@ -11,6 +11,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var classesCache: ClassesCache
+    @StateObject private var notificationService = NotificationService.shared
     
     init(isPreview: Bool = false) {
         if isPreview {
@@ -18,8 +19,9 @@ struct SettingsView: View {
         }
     }
     
-    @AppStorage("pushNotificationsEnabled") private var pushNotificationsEnabled = true
     @State private var showingLogoutAlert = false
+    @State private var showingPermissionAlert = false
+    @State private var isTogglingNotifications = false
     
     var appVersion: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
@@ -39,9 +41,17 @@ struct SettingsView: View {
                     // Einstellungen Section
                     Section {
                         // Push Benachrichtigungen Toggle
-                        Toggle(isOn: $pushNotificationsEnabled) {
+                        Toggle(isOn: Binding(
+                            get: { notificationService.isEnabled },
+                            set: { newValue in
+                                Task {
+                                    await handleNotificationToggle(newValue)
+                                }
+                            }
+                        )) {
                             Label("Push-Benachrichtigungen", systemImage: "bell.fill")
                         }
+                        .disabled(isTogglingNotifications)
                         
                         // Klassen-Auswahl
                         Picker(selection: Binding(
@@ -113,12 +123,53 @@ struct SettingsView: View {
                 } message: {
                     Text("Möchtest du dich wirklich abmelden?")
                 }
+                .alert("Benachrichtigungen aktivieren", isPresented: $showingPermissionAlert) {
+                    Button("Abbrechen", role: .cancel) {
+                        // Status wiederherstellen
+                        Task {
+                            await notificationService.checkAuthorizationStatus()
+                        }
+                    }
+                    Button("Einstellungen öffnen") {
+                        notificationService.openAppSettings()
+                    }
+                } message: {
+                    Text("Bitte erlaube Benachrichtigungen in den App-Einstellungen, um diese Funktion zu nutzen.")
+                }
             },
             skeletonView: {
                 // Für Settings brauchen wir kein Skeleton, da sie immer geladen sind
                 ProgressView()
             }
         )
+        .task {
+            // Status beim Öffnen der View aktualisieren
+            await notificationService.checkAuthorizationStatus()
+        }
+    }
+    
+    /// Behandelt das Umschalten des Benachrichtigungs-Toggle
+    private func handleNotificationToggle(_ newValue: Bool) async {
+        isTogglingNotifications = true
+        defer { isTogglingNotifications = false }
+        
+        if newValue {
+            // User möchte Benachrichtigungen aktivieren
+            let success = await notificationService.enableNotifications()
+            
+            if success {
+                // Benachrichtigungen erfolgreich aktiviert
+                print("✅ Benachrichtigungen erfolgreich aktiviert")
+            }
+            
+            if !success && notificationService.authorizationStatus == .denied {
+                // Berechtigung wurde verweigert - zeige Alert
+                showingPermissionAlert = true
+            }
+        } else {
+            // User möchte Benachrichtigungen deaktivieren
+            notificationService.disableNotifications()
+        }
     }
 }
 

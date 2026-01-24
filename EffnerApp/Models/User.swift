@@ -80,7 +80,7 @@ class UserSession: ObservableObject {
         // Keychain query for id and password
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "de.effnerapp.effnerapp",
+            kSecAttrService as String: Constants.bundleIdentifier,
             kSecReturnAttributes as String: true,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
@@ -136,7 +136,7 @@ struct User: Codable {
         let passwordData = password.data(using: .utf8) ?? Data()
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "de.effnerapp.effnerapp",
+            kSecAttrService as String: Constants.bundleIdentifier,
             kSecAttrAccount as String: account,
             kSecValueData as String: passwordData
         ]
@@ -159,7 +159,7 @@ struct User: Codable {
         // Remove credentials from Keychain
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "de.effnerapp.effnerapp",
+            kSecAttrService as String: Constants.bundleIdentifier,
             kSecAttrAccount as String: id
         ]
         SecItemDelete(query as CFDictionary)

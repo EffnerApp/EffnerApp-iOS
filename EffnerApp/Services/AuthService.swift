@@ -15,7 +15,7 @@ class AuthService : ObservableObject {
         self.networkManager = networkManager
     }
     
-    func login(username: String, password: String, class: String) async -> Result<User, NetworkError> {
+    func login(username: String, password: String, klasses: [String]) async -> Result<User, NetworkError> {
         let authentication = Authentication(id: username, password: password)
         
         do {
@@ -25,7 +25,7 @@ class AuthService : ObservableObject {
                 return .failure(self.error!)
             }
             
-            let user = User(id: username, password: password, klass: `class`, isAuthorized: true)
+            let user = User(id: username, password: password, klasses: klasses, isAuthorized: true)
             
             // Update on main thread
             await MainActor.run {
@@ -33,7 +33,7 @@ class AuthService : ObservableObject {
             }
             
             user.saveCredentials()
-            user.saveKlass()
+            user.saveKlasses()
             
             return .success(user)
         } catch let networkError as NetworkError {

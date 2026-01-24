@@ -23,6 +23,17 @@ struct SettingsView: View {
     @State private var showingPermissionAlert = false
     @State private var isTogglingNotifications = false
     
+    var selectedClassesText: String {
+        let klasses = session.user?.klasses ?? []
+        if klasses.isEmpty {
+            return "Keine Klasse ausgewählt"
+        } else if klasses.count == 1 {
+            return klasses[0]
+        } else {
+            return "\(klasses.count) Klassen"
+        }
+    }
+    
     var appVersion: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
@@ -53,20 +64,17 @@ struct SettingsView: View {
                         }
                         .disabled(isTogglingNotifications)
                         
-                        // Klassen-Auswahl
-                        Picker(selection: Binding(
-                            get: { session.user?.klass ?? "" },
-                            set: { newValue in
-                                session.updateUserKlass(newValue)
+                        // Klassen-Auswahl (Multi-Select)
+                        NavigationLink(destination: ClassSelectionView()) {
+                            HStack {
+                                Label("Klassen", systemImage: "person.3.fill")
+                                Spacer()
+                                Text(selectedClassesText)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
                             }
-                        )) {
-                            ForEach(classesCache.cachedClasses, id: \.self) { className in
-                                Text(className).tag(className)
-                            }
-                            Text("test").tag("test")
-                        } label: {
-                            Label("Klasse", systemImage: "person.3.fill")
                         }
+                        
                         
                         // Abmelden Button
                         Button(role: .destructive, action: {
@@ -80,19 +88,19 @@ struct SettingsView: View {
                     
                     // Über Section
                     Section {
-                        Link(destination: URL(string: "https://example.com/feedback")!) {
+                        Link(destination: URL(string: "mailto:support@effner.app")!) {
                             Label("Feedback", systemImage: "envelope")
                         }
                         
-                        Link(destination: URL(string: "https://example.com/datenschutz")!) {
+                        Link(destination: URL(string: "https://effner.app/datenschutz")!) {
                             Label("Datenschutzerklärung", systemImage: "hand.raised.fill")
                         }
                         
-                        Link(destination: URL(string: "https://example.com/impressum")!) {
+                        Link(destination: URL(string: "https://effner.app/impressum")!) {
                             Label("Impressum", systemImage: "doc.text.fill")
                         }
                         
-                        Link(destination: URL(string: "https://example.com/status")!) {
+                        Link(destination: URL(string: "https://effner.app/status")!) {
                             Label("Status", systemImage: "checkmark.circle.fill")
                         }
                     } header: {

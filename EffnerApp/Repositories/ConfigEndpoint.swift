@@ -13,7 +13,7 @@ struct ConfigEndpoint : Endpoint {
     }
     
     var path: String {
-        "/config/" + UserSession.shared.user!.klass
+        "/config/" + (UserSession.shared.user!.primaryClass ?? "")
     }
     
     var method: HTTPMethod {

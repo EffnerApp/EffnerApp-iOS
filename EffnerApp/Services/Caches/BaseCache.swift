@@ -109,6 +109,6 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
     
     /// Gibt Mock-Daten zurück, falls User "test" Klasse hat
     func shouldUseMockData() -> Bool {
-        return UserSession.shared.user?.klass == "test"
+        return UserSession.shared.user?.primaryClass == "test"
     }
 }

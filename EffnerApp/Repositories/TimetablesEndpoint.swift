@@ -13,7 +13,7 @@ struct TimetablesEndpoint : Endpoint {
     }
     
     var path: String {
-        "/timetables/" + UserSession.shared.user!.klass
+        "/timetables/" + (UserSession.shared.user!.primaryClass ?? "")
     }
     
     var method: HTTPMethod {

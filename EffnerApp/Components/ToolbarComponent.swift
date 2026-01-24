@@ -20,31 +20,32 @@ struct ToolbarComponent: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItemGroup {
-            Menu {
-                VStack {
-                    ForEach(ClassesCache.shared.cachedClasses, id: \.self) { className in
-                        Button(action: {
-                            session.updateUserKlass(className)
-                        }) {
-                            if session.user?.klass == className {
-                                Image(systemName: "checkmark")
+            if let userKlasses = session.user?.klasses, userKlasses.count > 1 {
+                Menu {
+                    // Show selected classes first
+                    Section(header: Text("Meine Klassen")) {
+                        ForEach(userKlasses, id: \.self) { className in
+                            Button(action: {
+                                session.setPrimaryClass(className)
+                            }) {
+                                if session.user?.primaryClass == className {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text(className)
                             }
-                            Text(className)
                         }
-                        .id(className) // Set the ID for scrolling
                     }
-                    Button(action: {
-                        session.updateUserKlass("test")
-                    }) {
-                        if session.user?.klass == "test" {
-                            Image(systemName: "checkmark")
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(session.user?.primaryClass ?? "1a")
+                            .font(.title)
+                        if let userKlasses = session.user?.klasses, userKlasses.count > 1 {
+                            Text("(+\(userKlasses.count - 1))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                        Text("test")
                     }
                 }
-            } label: {
-                Text(session.user?.klass ?? "1a")
-                    .font(.title)
             }
             
             Button(action: {

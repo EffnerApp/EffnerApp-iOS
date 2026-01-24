@@ -13,7 +13,7 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var path: String {
-        "/exams/" + UserSession.shared.user!.klass
+        "/exams/" + (UserSession.shared.user!.primaryClass ?? "")
     }
     
     var method: HTTPMethod {

@@ -20,15 +20,31 @@ class UserSession: ObservableObject {
     
     var isCheckingAuthorization: Bool = true
     
-    // Helper method to update class and trigger cache refresh
+    // Helper method to set the primary class (moves it to the first position)
     @MainActor
-    func updateUserKlass(_ newKlass: String) {
+    func setPrimaryClass(_ className: String) {
         guard var currentUser = user else { return }
-        let olKClass = currentUser.klass
         
-        if olKClass != newKlass {
-            currentUser.klass = newKlass
-            currentUser.saveKlass()
+        // Remove the class from its current position and add it to the front
+        var updatedKlasses = currentUser.klasses.filter { $0 != className }
+        updatedKlasses.insert(className, at: 0)
+        
+        if currentUser.klasses != updatedKlasses {
+            currentUser.klasses = updatedKlasses
+            currentUser.saveKlasses()
+            self.user = currentUser
+        }
+    }
+    
+    // Helper method to update multiple classes
+    @MainActor
+    func updateUserKlasses(_ newKlasses: [String]) {
+        guard var currentUser = user else { return }
+        let oldKlasses = currentUser.klasses
+        
+        if oldKlasses != newKlasses {
+            currentUser.klasses = newKlasses
+            currentUser.saveKlasses()
             self.user = currentUser
         }
     }
@@ -80,13 +96,13 @@ class UserSession: ObservableObject {
             return nil
         }
         // UserDefaults for classA
-        let classA = UserDefaults.standard.string(forKey: "userClassA")
-        guard let classA = classA else {
-            print("No classA found in UserDefaults.")
+        let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")
+        guard let klasses = klasses else {
+            print("No Klasses found in UserDefaults.")
             return nil
         }
         // Set user
-        return User(id: account, password: password, klass: classA, isAuthorized: true)
+        return User(id: account, password: password, klasses: klasses, isAuthorized: true)
     }
     
     @MainActor
@@ -102,9 +118,14 @@ class UserSession: ObservableObject {
 struct User: Codable {
     var id: String
     var password: String
-    var klass: String
+    var klasses: [String] = [] // List of classes the user is in
     
     var isAuthorized: Bool = false
+    
+    // Computed property to get the primary class (first in list or fallback to klass)
+    var primaryClass: String? {
+        return klasses.first
+    }
     
     func generateAuth() -> Authentication {
         return Authentication(user: self)
@@ -130,8 +151,8 @@ struct User: Codable {
         }
     }
     
-    func saveKlass() {
-        UserDefaults.standard.set(klass, forKey: "userClassA")
+    func saveKlasses() {
+        UserDefaults.standard.set(klasses, forKey: "userKlasses")
     }
     
     func clearCredentials() {
@@ -142,8 +163,8 @@ struct User: Codable {
             kSecAttrAccount as String: id
         ]
         SecItemDelete(query as CFDictionary)
-        // Remove classA from UserDefaults
-        UserDefaults.standard.removeObject(forKey: "userClassA")
+        // Remove Klasses from UserDefaults
+        UserDefaults.standard.removeObject(forKey: "userKlasses")
     }
     
 }

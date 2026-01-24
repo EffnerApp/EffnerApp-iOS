@@ -12,7 +12,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions:[UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        requestNotificationPermission()
+        //requestNotificationPermission()
         return true
     }
 
@@ -51,6 +51,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
     
     // Handle push notification when the app is in the foreground
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("Will present notification: \(notification.request.content.userInfo)")
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    // Handle notification tap/response
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         // Handle the notification and perform necessary actions
         print("Notification received with identifier: \(response.notification.request.identifier)")
@@ -74,6 +80,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Indicate the result of the background fetch to the system
         completionHandler(UIBackgroundFetchResult.newData)
     }
-
+    
     
 }

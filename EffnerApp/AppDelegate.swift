@@ -25,7 +25,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let token = tokenParts.joined()
         print("Device Token joined: \(token)")
         
+        NotificationService.shared.deviceToken = token
         
+        Task {
+            await createNotificationUser()
+        }
+    }
+    
+    func createNotificationUser() async {
+        let result = await NotificationService.shared.createUser()
+        switch result {
+        case .success(let response):
+            print("Notification user created successfully.")
+            print("Notification creationg Response: \(response)")
+        case .failure(let error):
+            print("Failed to create notification user: \(error.localizedDescription)")
+        }
     }
     
     func application(

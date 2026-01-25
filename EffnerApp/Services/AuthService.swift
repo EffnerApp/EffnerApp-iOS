@@ -25,11 +25,11 @@ class AuthService : ObservableObject {
                 return .failure(self.error!)
             }
             
-            let user = User(username: username, password: password, klasses: klasses, isAuthorized: true)
+            let user = User(ssbId: "", ssbToken: "", username: username, password: password, klasses: klasses, isAuthorized: true)
             
             // Update on main thread
             await MainActor.run {
-                UserSession.shared.user = user
+                UserSession.shared.setUser(user: user)
             }
             
             user.saveCredentials()

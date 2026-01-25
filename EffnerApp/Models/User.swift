@@ -12,13 +12,51 @@ import Security
 class UserSession: ObservableObject {
     static let shared = UserSession()
     
-    var user: User? = nil {
-        didSet {
+    //var user: User? = nil {
+     //   didSet {
+      //      objectWillChange.send()
+      //  }
+    //}
+    var user: User? = nil
+    var isCheckingAuthorization: Bool = true
+    
+    private init() {
+        // Initialize the UserSessions
+        user = loadUserFromStorage();
+        
+        guard let user else {
+            print("No user found in storage.")
+            isCheckingAuthorization = false
+            return
+        }
+        
+        Task { @MainActor in
+            let isAuthorized = await AuthService().authorize(user: user)
+            switch isAuthorized {
+            case .success(let authorized):
+                if authorized {
+                    print("User is authorized.")
+                    self.user?.isAuthorized = true
+                }
+            case .failure(let error):
+                print("Authorization failed with error: \(error)")
+                self.user = nil
+            }
+            self.isCheckingAuthorization = false
+            
+            // notify caches
             objectWillChange.send()
         }
     }
     
-    var isCheckingAuthorization: Bool = true
+    @MainActor
+    func setUser(user: User) {
+        self.user = user
+        
+        // notify the caches
+        objectWillChange.send()
+    }
+
     
     // Helper method to set the primary class (moves it to the first position)
     @MainActor
@@ -34,10 +72,12 @@ class UserSession: ObservableObject {
             currentUser.saveKlasses()
             self.user = currentUser
         }
+        
+        // notify the caches
+        objectWillChange.send()
     }
     
     // Helper method to update multiple classes
-    @MainActor
     func updateUserKlasses(_ newKlasses: [String]) {
         guard var currentUser = user else { return }
         let oldKlasses = currentUser.klasses
@@ -49,73 +89,42 @@ class UserSession: ObservableObject {
         }
     }
     
-    private init() {
-        // Initialize the UserSessions
-        user = loadUserFromStorage();
-        
-        guard let user else {
-            print("No user found in storage.")
-            isCheckingAuthorization = false
-            return
-        }
-        
-        Task { @MainActor in
-            let isAuthorized = await AuthService().authorize(user: user)
-            switch isAuthorized {
-                case .success(let authorized):
-                    if authorized {
-                        print("User is authorized.")
-                        self.user?.isAuthorized = true
-                    }
-                case .failure(let error):
-                    print("Authorization failed with error: \(error)")
-                    self.user = nil
-                }
-            self.isCheckingAuthorization = false
-        }
-        
-    }
-    
     func loadUserFromStorage() -> User? {
         // Keychain query for id and password
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Constants.bundleIdentifier,
-            kSecReturnAttributes as String: true,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess,
-              let existingItem = item as? [String: Any],
-              let account = existingItem[kSecAttrAccount as String] as? String,
-              let passwordData = existingItem[kSecValueData as String] as? Data,
-              let password = String(data: passwordData, encoding: .utf8) else {
-            print("No credentials found in keychain.")
-            return nil
-        }
-        // UserDefaults for classA
+        let cred: KeyChainItem? = KeyChainUtil.loadFromKeyChain(serviceName: Constants.bundleIdentifier)
+        let ssbCred: KeyChainItem? = KeyChainUtil.loadFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb")
+        
+        // UserDefaults for userKlasses
         let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")
         guard let klasses = klasses else {
             print("No Klasses found in UserDefaults.")
             return nil
         }
+        
         // Set user
-        return User(username: account, password: password, klasses: klasses, isAuthorized: true)
+        return User(ssbId: ssbCred?.key ?? "", ssbToken: ssbCred?.value ?? "", username: cred?.key ?? "", password: cred?.value ?? "", klasses: klasses, isAuthorized: true)
     }
     
     @MainActor
     func logout() {
         // Clear user session
         user?.clearCredentials()
+        user?.clearSSBCredentials()
+        
+        NotificationService.shared.disableNotifications()
         user = nil
         print("User logged out and credentials cleared.")
+        
+        // notify caches
+        objectWillChange.send()
     }
 }
 
 
 struct User: Codable {
+    var ssbId: String
+    var ssbToken: String
+    
     var username: String
     var password: String
     var klasses: [String] = [] // List of classes the user is in
@@ -135,40 +144,38 @@ struct User: Codable {
         return Authentication.ssbBasic(username: username, password: password)
     }
     
-    func saveCredentials() {
-        let account = username
-        let passwordData = password.data(using: .utf8) ?? Data()
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Constants.bundleIdentifier,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: passwordData
-        ]
-        
-        SecItemDelete(query as CFDictionary) // Remove any existing item
-        
-        let status = SecItemAdd(query as CFDictionary, nil)
-        if status != errSecSuccess {
-            print("Error saving credentials: \(status)")
-        } else {
-            print("Credentials saved successfully.")
-        }
+    func generateSSBTokenAuth() -> Authentication {
+        return Authentication.ssbToken(id: ssbId, token: ssbToken)
     }
     
-    func saveKlasses() {
-        UserDefaults.standard.set(klasses, forKey: "userKlasses")
+    mutating func saveSSBCredentials(id: String, token: String) {
+        ssbId = id
+        ssbToken = token
+        
+        KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", item: KeyChainItem(key: id, value: token))
+    }
+    
+    mutating func clearSSBCredentials() {
+        // Remove SSB credentials from Keychain
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", username: ssbId)
+        
+        ssbId = ""
+        ssbToken = ""
+    }
+    
+    func saveCredentials() {
+        KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier, item: KeyChainItem(key: username, value: password))
     }
     
     func clearCredentials() {
         // Remove credentials from Keychain
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Constants.bundleIdentifier,
-            kSecAttrAccount as String: username
-        ]
-        SecItemDelete(query as CFDictionary)
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier, username: username)
         // Remove Klasses from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userKlasses")
+    }
+    
+    func saveKlasses() {
+        UserDefaults.standard.set(klasses, forKey: "userKlasses")
     }
     
 }

@@ -13,11 +13,22 @@ import UIKit
 class NotificationService: ObservableObject {
     static let shared = NotificationService()
     
+    @Published var error: NetworkError?
+    private let networkManager : NetworkManager
+    
+//    init(networkManager: NetworkManager = NetworkManager.shared) {
+//        self.networkManager = networkManager
+//   }
+    
+    
+    
     @Published var isEnabled: Bool = false
     @Published var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @Published var deviceToken: String? = nil
     
-    private init() {
+    private init(networkManager: NetworkManager = NetworkManager.shared) {
+        self.networkManager = networkManager
+        print("NotificationService initialized")
         Task {
             await checkAuthorizationStatus()
         }
@@ -29,7 +40,12 @@ class NotificationService: ObservableObject {
         let settings = await center.notificationSettings()
         
         authorizationStatus = settings.authorizationStatus
-        isEnabled = settings.authorizationStatus == .authorized
+        let notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
+        guard notificationsEnabled else {
+            isEnabled = false
+            return
+        }
+        isEnabled = notificationsEnabled && (authorizationStatus == .authorized)
     }
     
     /// Fordert die Benachrichtigungsberechtigung an (wenn noch nicht geschehen)
@@ -42,6 +58,7 @@ class NotificationService: ObservableObject {
             if granted {
                 // Registriere für Remote Notifications
                 UIApplication.shared.registerForRemoteNotifications()
+                UserDefaults.standard.set(true, forKey: "notificationsEnabled")
                 await checkAuthorizationStatus()
                 return true
             } else {
@@ -60,14 +77,8 @@ class NotificationService: ObservableObject {
         await checkAuthorizationStatus()
         
         switch authorizationStatus {
-        case .notDetermined:
-            // Noch nicht gefragt - frage nach Berechtigung
+        case .notDetermined, .authorized:
             return await requestPermission()
-            
-        case .authorized:
-            // Bereits autorisiert
-            isEnabled = true
-            return true
             
         case .denied, .provisional, .ephemeral:
             // Berechtigung wurde verweigert oder ist eingeschränkt
@@ -82,9 +93,11 @@ class NotificationService: ObservableObject {
     
     /// Deaktiviert Benachrichtigungen
     func disableNotifications() {
+        Task {
+            await deleteUser()
+        }
         isEnabled = false
-        // Hinweis: Man kann programmatisch keine Berechtigung entziehen,
-        // aber wir können den Status lokal speichern
+        UserDefaults.standard.set(false, forKey: "notificationsEnabled")
     }
     
     /// Öffnet die Einstellungen der App, damit der User Berechtigungen ändern kann
@@ -93,6 +106,48 @@ class NotificationService: ObservableObject {
             if UIApplication.shared.canOpenURL(appSettings) {
                 UIApplication.shared.open(appSettings)
             }
+        }
+    }
+    
+    
+    func createUser() async -> Result<SSBUserResponse, NetworkError> {
+        do {
+            guard deviceToken != nil else {
+                self.error = .clientError(statusCode: 400, msg: "Device token is nil.")
+                return .failure(self.error!)
+            }
+            let ssbUserRequest = SSBUserRequest(deviceToken: deviceToken!, classes: UserSession.shared.user?.klasses ?? [])
+            
+            let ssbUserResponse: SSBUserResponse = try await networkManager.fetch(from: CreateUserEndpoint(ssbUserRequest: ssbUserRequest))
+            
+            UserSession.shared.user?.saveSSBCredentials(id: ssbUserResponse.id, token: ssbUserResponse.token)
+            
+            return .success(ssbUserResponse)
+        } catch let networkError as NetworkError {
+            self.error = networkError
+            return .failure(self.error!)
+        } catch(let error) {
+            self.error = .unknownError(statusCode: 0, msg: error.localizedDescription)
+            return .failure(self.error!)
+        }
+    }
+    
+    func deleteUser() async -> Result<Bool, NetworkError> {
+        do {
+            let _result: Bool = try await networkManager.fetch(from: DeleteUserEndpoint())
+            
+            guard _result else {
+                self.error = .serverError(statusCode: 500, msg: "Failed to delete user on server.")
+                return .failure(self.error!)
+            }
+            
+            return .success(_result)
+        } catch let networkError as NetworkError {
+            self.error = networkError
+            return .failure(self.error!)
+        } catch(let error) {
+            self.error = .unknownError(statusCode: 0, msg: error.localizedDescription)
+            return .failure(self.error!)
         }
     }
 }

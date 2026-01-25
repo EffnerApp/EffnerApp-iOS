@@ -178,6 +178,14 @@ struct SettingsView: View {
             // User möchte Benachrichtigungen deaktivieren
             notificationService.disableNotifications()
         }
+        
+        do {
+            try await Task.sleep(for: .seconds(5))
+        } catch {
+            print("Sleep interrupted: \(error)")
+        }
+            
+        
     }
 }
 

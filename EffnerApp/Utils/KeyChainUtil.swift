@@ -46,7 +46,7 @@ struct KeyChainUtil {
             kSecValueData as String: passwordData
         ]
         
-        SecItemDelete(query as CFDictionary) // Remove any existing item
+        deleteFromKeyChain(serviceName: serviceName) // Ensure no duplicates
         
         let status = SecItemAdd(query as CFDictionary, nil)
         if status != errSecSuccess {
@@ -58,13 +58,13 @@ struct KeyChainUtil {
         }
     }
     
-    public static func deleteFromKeyChain(serviceName: String, username: String) {
+    public static func deleteFromKeyChain(serviceName: String) {
         // Remove credentials from Keychain
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: serviceName,
-            kSecAttrAccount as String: username
+            kSecAttrService as String: serviceName
         ]
+        
         SecItemDelete(query as CFDictionary)
     }
         

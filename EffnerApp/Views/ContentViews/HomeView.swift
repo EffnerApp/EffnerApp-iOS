@@ -124,7 +124,7 @@ struct BentoGridLayout: View {
                 GridItem(.flexible(), spacing: 12)
             ], spacing: 12) {
                 
-                // Platzhalter für weitere Widgets
+                /*
                 GridWidget(
                     icon: "plus.forwardslash.minus",
                     title: "Noten",
@@ -134,6 +134,7 @@ struct BentoGridLayout: View {
                     Text("⌀1,3")
                         .font(.system(size: 54))
                 }
+                 */
                 
                 GridWidget(
                     icon: "beach.umbrella.fill",

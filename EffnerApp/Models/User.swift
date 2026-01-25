@@ -61,16 +61,13 @@ class UserSession: ObservableObject {
     // Helper method to set the primary class (moves it to the first position)
     @MainActor
     func setPrimaryClass(_ className: String) {
-        guard var currentUser = user else { return }
-        
         // Remove the class from its current position and add it to the front
-        var updatedKlasses = currentUser.klasses.filter { $0 != className }
+        var updatedKlasses = user!.klasses.filter { $0 != className }
         updatedKlasses.insert(className, at: 0)
         
-        if currentUser.klasses != updatedKlasses {
-            currentUser.klasses = updatedKlasses
-            currentUser.saveKlasses()
-            self.user = currentUser
+        if user!.klasses != updatedKlasses {
+            user!.klasses = updatedKlasses
+            user!.saveKlasses()
         }
         
         // notify the caches
@@ -79,13 +76,17 @@ class UserSession: ObservableObject {
     
     // Helper method to update multiple classes
     func updateUserKlasses(_ newKlasses: [String]) {
-        guard var currentUser = user else { return }
-        let oldKlasses = currentUser.klasses
+        let oldKlasses = user!.klasses
         
         if oldKlasses != newKlasses {
-            currentUser.klasses = newKlasses
-            currentUser.saveKlasses()
-            self.user = currentUser
+            user!.klasses = newKlasses
+            user!.saveKlasses()
+            
+            Task {
+                if await NotificationService.shared.isEnabled {
+                    _ = await NotificationService.shared.updateKlasses(klasses: newKlasses)
+                }
+            }
         }
     }
     
@@ -157,7 +158,7 @@ struct User: Codable {
     
     mutating func clearSSBCredentials() {
         // Remove SSB credentials from Keychain
-        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", username: ssbId)
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb")
         
         ssbId = ""
         ssbToken = ""
@@ -169,19 +170,13 @@ struct User: Codable {
     
     func clearCredentials() {
         // Remove credentials from Keychain
-        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier, username: username)
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier)
         // Remove Klasses from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userKlasses")
     }
     
     func saveKlasses() {
         UserDefaults.standard.set(klasses, forKey: "userKlasses")
-            
-        Task {
-            if await NotificationService.shared.isEnabled {
-                _ = await NotificationService.shared.updateKlasses(klasses: klasses)
-            }
-        }
     }
     
 }

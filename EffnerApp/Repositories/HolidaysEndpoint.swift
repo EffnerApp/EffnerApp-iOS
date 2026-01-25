@@ -30,9 +30,9 @@ struct HolidaysEndpoint : Endpoint {
     
     var parameters: [String : Any]? {
         [
-            "start_date": "2025-10-01",
+            "start_date": "2025-10-01", //TODO: Set dynamic date
             "end_date": "2026-10-01",
-            "type": "vacation"
+            //"type": "vacation"
         ]
     }
     

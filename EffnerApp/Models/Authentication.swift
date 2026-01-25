@@ -9,13 +9,15 @@ import Foundation
 import CommonCrypto
 
 enum AuthenticationType: Codable {
-    case custom  // Original SHA512-based authentication
+    case effner  // Original SHA512-based authentication
     case ssbBasic  // HTTP Basic authentication for SSB backend
+    case ssbToken  // Token-based authentication for SSB backend
 }
 
 struct Authentication: Codable {
     let time: String
-    let credentialHash: String
+    let username: String?
+    let credential: String
     let type: AuthenticationType
 }
 
@@ -29,8 +31,9 @@ extension Authentication {
         let currentTime = String(Int(Date().timeIntervalSince1970 * 1000))
         time = currentTime
         let credentials = "\(username):\(password):\(currentTime)"
-        self.credentialHash = sha512(string: credentials)
-        self.type = .custom
+        self.username = ""
+        self.credential = sha512(string: credentials)
+        self.type = .effner
     }
 }
 
@@ -48,11 +51,28 @@ extension Authentication {
         let base64Credentials = credentialData.base64EncodedString()
         
         return Authentication(
-            time: currentTime,  // SSB Basic auth doesn't use time
-            credentialHash: base64Credentials,
+            time: currentTime,
+            username: "", // SSB Basic doesnt use username field. Set empty to avoid confusion.
+            credential: base64Credentials,
             type: .ssbBasic
         )
     }
+    
+    /// Creates SSB authentication using token-based format
+    /// - Parameters:
+    ///   - id: the ssb user account id
+    ///   - token: the ssb authentication token
+    /// - Returns: Authentication instance with the provided token
+    static func ssbToken(id: String, token: String) -> Authentication {
+        let currentTime = String(Int(Date().timeIntervalSince1970 * 1000))
+        return Authentication(
+            time: currentTime,
+            username: id,
+            credential: token,
+            type: .ssbToken
+        )
+    }
+
 }
 
 private func sha512(string: String) -> String {

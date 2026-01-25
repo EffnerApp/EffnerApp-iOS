@@ -13,6 +13,7 @@ protocol Endpoint {
     var authentication: Authentication? { get }
     var headers: [String: String]? { get }
     var parameters: [String: Any]? { get }
+    var body: Encodable? { get }
 }
 
 extension Endpoint {
@@ -25,22 +26,36 @@ extension Endpoint {
         allHeaders["Content-Type"] = "application/json"
         
         if let auth = authentication {
-            allHeaders["Authorization"] = "Basic \(auth.credentialHash)"
-            allHeaders["X-Time"] = auth.time
+            switch auth.type {
+            case .effner, .ssbBasic:
+                allHeaders["Authorization"] = "Basic \(auth.credential)"
+                allHeaders["X-Time"] = auth.time
+            case .ssbToken:
+                allHeaders["X-User-Id"] = auth.username
+                allHeaders["X-User-Token"] = auth.credential
+            }
         }
         
         request.allHTTPHeaderFields = allHeaders
         
         if let parameters = parameters {
-            if method == .get {
-                var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-                components?.queryItems = parameters.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
-                request.url = components?.url
-            } else {
-                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-            }
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+            components?.queryItems = parameters.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
+            request.url = components?.url
+        }
+        
+        if let body = body {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            request.httpBody = try encoder.encode(body)
         }
         
         return request
     }
+    
+    // default body implementation
+    var body: Encodable? {
+        nil
+    }
+    
 }

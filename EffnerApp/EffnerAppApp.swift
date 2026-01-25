@@ -19,17 +19,11 @@ struct EffnerAppApp: App {
     @StateObject private var config = ConfigCache.shared
     @StateObject private var documents = DocumentsCache.shared
     @StateObject private var holidays = HolidaysCache.shared
+    @StateObject private var notifications = NotificationService.shared
     
     var body: some Scene {
         WindowGroup {
             Group {
-//                if session.isCheckingAuthorization {
-//                    // Zeige einen Loading-State während der Authorization-Check läuft
-//                    ProgressView("Anmeldung wird geprüft...")
-//                        .progressViewStyle(.circular)
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                } else
-                
                 if let user = session.user, user.isAuthorized {
                     // User hat eine Session und ist autorisiert → ContentView
                     ContentView()
@@ -41,6 +35,7 @@ struct EffnerAppApp: App {
                         .environmentObject(config)
                         .environmentObject(documents)
                         .environmentObject(holidays)
+                        .environmentObject(notifications)
                 } else {
                     // Keine Session oder nicht autorisiert → LoginView
                     LoginView()

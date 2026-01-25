@@ -152,7 +152,7 @@ struct User: Codable {
         ssbId = id
         ssbToken = token
         
-        KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", item: KeyChainItem(key: id, value: token))
+        _ = KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", item: KeyChainItem(key: id, value: token))
     }
     
     mutating func clearSSBCredentials() {
@@ -164,7 +164,7 @@ struct User: Codable {
     }
     
     func saveCredentials() {
-        KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier, item: KeyChainItem(key: username, value: password))
+        _ = KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier, item: KeyChainItem(key: username, value: password))
     }
     
     func clearCredentials() {
@@ -176,6 +176,12 @@ struct User: Codable {
     
     func saveKlasses() {
         UserDefaults.standard.set(klasses, forKey: "userKlasses")
+            
+        Task {
+            if await NotificationService.shared.isEnabled {
+                _ = await NotificationService.shared.updateKlasses(klasses: klasses)
+            }
+        }
     }
     
 }

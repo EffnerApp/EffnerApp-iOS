@@ -150,4 +150,18 @@ class NotificationService: ObservableObject {
             return .failure(self.error!)
         }
     }
+    
+    func updateKlasses(klasses: [String]) async -> Result<SSBUserResponse, NetworkError> {
+        do {
+            let _result: SSBUserResponse = try await networkManager.fetch(from: UpdateKlassesEndpoint(klasses: klasses))
+            
+            return .success(_result)
+        } catch let networkError as NetworkError {
+            self.error = networkError
+            return .failure(self.error!)
+        } catch(let error) {
+            self.error = .unknownError(statusCode: 0, msg: error.localizedDescription)
+            return .failure(self.error!)
+        }
+    }
 }

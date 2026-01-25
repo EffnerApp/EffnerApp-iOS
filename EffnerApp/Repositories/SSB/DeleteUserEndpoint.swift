@@ -14,7 +14,7 @@ struct DeleteUserEndpoint : Endpoint {
     }
     
     var path: String {
-        "/users"
+        "/users/\(UserSession.shared.user!.ssbId)"
     }
     
     var method: HTTPMethod {

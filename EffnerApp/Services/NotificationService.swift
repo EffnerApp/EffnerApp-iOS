@@ -15,13 +15,7 @@ class NotificationService: ObservableObject {
     
     @Published var error: NetworkError?
     private let networkManager : NetworkManager
-    
-//    init(networkManager: NetworkManager = NetworkManager.shared) {
-//        self.networkManager = networkManager
-//   }
-    
-    
-    
+
     @Published var isEnabled: Bool = false
     @Published var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @Published var deviceToken: String? = nil
@@ -140,6 +134,8 @@ class NotificationService: ObservableObject {
                 self.error = .serverError(statusCode: 500, msg: "Failed to delete user on server.")
                 return .failure(self.error!)
             }
+            
+            UserSession.shared.user?.clearSSBCredentials()
             
             return .success(_result)
         } catch let networkError as NetworkError {

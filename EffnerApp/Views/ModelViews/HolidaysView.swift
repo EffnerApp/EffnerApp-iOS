@@ -88,9 +88,11 @@ struct HolidayRowView: View {
                     .padding(.leading, 12)
 
                 HStack {
-                    Text("bis \(formatDateShort(holiday.endsOn))")
-                        .font(.subheadline)
-                    
+                    if (holiday.startsOn != holiday.endsOn) {
+                        Text("bis \(formatDateShort(holiday.endsOn))")
+                            .font(.subheadline)
+                    }
+                        
                     if holiday.isPublicHoliday {
                         Text("Feiertag")
                             .font(.subheadline)

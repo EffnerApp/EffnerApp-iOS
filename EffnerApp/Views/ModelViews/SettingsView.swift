@@ -15,7 +15,7 @@ struct SettingsView: View {
     
     init(isPreview: Bool = false) {
         if isPreview {
-            ClassesCache.shared.saveClasses(["1a", "2b", "3c", "4d", "5e", "6f", "7g", "8h", "9i", "10j", "11k", "12l", "13m", "14n", "15o"])
+            ClassesCache.shared.saveClasses(["1a", "2b", "3c", "4d", "5e", "6f", "7g", "8h", "9i", "10j", "11k", "12l"])
         }
     }
     
@@ -92,11 +92,11 @@ struct SettingsView: View {
                             Label("Feedback", systemImage: "envelope")
                         }
                         
-                        Link(destination: URL(string: "https://effner.app/datenschutz")!) {
+                        Link(destination: URL(string: "https://effner.app/privacy")!) {
                             Label("Datenschutzerklärung", systemImage: "hand.raised.fill")
                         }
                         
-                        Link(destination: URL(string: "https://effner.app/impressum")!) {
+                        Link(destination: URL(string: "https://effner.app/imprint")!) {
                             Label("Impressum", systemImage: "doc.text.fill")
                         }
                         
@@ -167,7 +167,7 @@ struct SettingsView: View {
             
             if success {
                 // Benachrichtigungen erfolgreich aktiviert
-                print("✅ Benachrichtigungen erfolgreich aktiviert")
+                print("Enabled Notifications from SettingsView")
             }
             
             if !success && notificationService.authorizationStatus == .denied {

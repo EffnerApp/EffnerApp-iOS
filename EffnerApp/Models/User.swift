@@ -102,7 +102,7 @@ class UserSession: ObservableObject {
             return nil
         }
         // Set user
-        return User(id: account, password: password, klasses: klasses, isAuthorized: true)
+        return User(username: account, password: password, klasses: klasses, isAuthorized: true)
     }
     
     @MainActor
@@ -116,7 +116,7 @@ class UserSession: ObservableObject {
 
 
 struct User: Codable {
-    var id: String
+    var username: String
     var password: String
     var klasses: [String] = [] // List of classes the user is in
     
@@ -131,8 +131,12 @@ struct User: Codable {
         return Authentication(user: self)
     }
     
+    func generateSSBBasicAuth() -> Authentication {
+        return Authentication.ssbBasic(username: username, password: password)
+    }
+    
     func saveCredentials() {
-        let account = id
+        let account = username
         let passwordData = password.data(using: .utf8) ?? Data()
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -160,7 +164,7 @@ struct User: Codable {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Constants.bundleIdentifier,
-            kSecAttrAccount as String: id
+            kSecAttrAccount as String: username
         ]
         SecItemDelete(query as CFDictionary)
         // Remove Klasses from UserDefaults

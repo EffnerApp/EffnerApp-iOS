@@ -60,13 +60,13 @@ struct LoginView: View {
                 }
             }
             LoadingButton(action: {
-                print("Login tapped with ID: \(accountId), Password: \(password), Option: \(selectedOption)")
+                print("Login tapped with Username: \(accountId), Password: \(password), Option: \(selectedOption)")
                 let user = await AuthService().login(username: accountId, password: password, klasses: [selectedOption])
                 return user
             }, onResult: { result in
                 switch result {
                     case .success(let user):
-                        print("Login successful for user: \(user.id)")
+                        print("Login successful for user: \(user.username)")
                         // User is getting rerouted to the main content view automatically by the App struct
                     case .failure(let error):
                         alertMessage = error.localizedDescription

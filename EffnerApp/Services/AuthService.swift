@@ -16,7 +16,7 @@ class AuthService : ObservableObject {
     }
     
     func login(username: String, password: String, klasses: [String]) async -> Result<User, NetworkError> {
-        let authentication = Authentication(id: username, password: password)
+        let authentication = Authentication(username: username, password: password)
         
         do {
             let loginResponse: LoginResponse = try await networkManager.fetch(from: AuthEndpoint(auth: authentication))
@@ -25,7 +25,7 @@ class AuthService : ObservableObject {
                 return .failure(self.error!)
             }
             
-            let user = User(id: username, password: password, klasses: klasses, isAuthorized: true)
+            let user = User(username: username, password: password, klasses: klasses, isAuthorized: true)
             
             // Update on main thread
             await MainActor.run {

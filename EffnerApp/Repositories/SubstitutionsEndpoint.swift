@@ -10,11 +10,11 @@ import Foundation
 struct SubstitutionsEndpoint : Endpoint {
     
     var baseURL: URL {
-        URL(string: Constants.v4URL)!
+        URL(string: Constants.ssbURL)!
     }
     
     var path: String {
-        "/substitutions/get/" + (UserSession.shared.user!.primaryClass ?? "")
+        "/substitutions/class/" + (UserSession.shared.user!.primaryClass ?? "") + "/upcoming"
     }
     
     var method: HTTPMethod {
@@ -22,7 +22,7 @@ struct SubstitutionsEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateAuth()
+        UserSession.shared.user!.generateSSBBasicAuth()
     }
     
     var headers: [String : String]? {

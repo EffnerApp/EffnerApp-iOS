@@ -18,9 +18,11 @@ class SubstitutionsService : ObservableObject {
     
     func fetchSubstitutions() async -> Result<SubstitutionResponse, NetworkError> {
         do {
-            let subResponse: SubstitutionResponse = try await networkManager.fetch(from: SubstitutionsEndpoint())
+            // SSB API returns [SubstitutionPlan] directly
+            let plans: [SubstitutionPlan] = try await networkManager.fetch(from: SubstitutionsEndpoint())
+            let response = SubstitutionResponse(plans: plans)
             
-            return .success(subResponse)
+            return .success(response)
         } catch let networkError as NetworkError {
             self.error = networkError
             return .failure(networkError)

@@ -50,29 +50,29 @@ struct ContentView: View {
             return 0
         }
         
-        let germanFormatter = DateFormatter()
-        germanFormatter.dateFormat = "dd.MM.yyyy"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
         let today = Date()
         
         // Suche zuerst nach dem heutigen Plan
         if let todayPlan = plans.first(where: { plan in
-            guard let planDate = germanFormatter.date(from: plan.date) else { return false }
+            guard let planDate = formatter.date(from: plan.planDate) else { return false }
             return Calendar.current.isDate(planDate, inSameDayAs: today)
         }) {
-            return todayPlan.substitutions?.count ?? 0
+            return todayPlan.substitutions.count
         }
         
         // Wenn kein Plan für heute existiert, nehme den nächsten zukünftigen Plan
         let futurePlans = plans
             .compactMap { plan -> (date: Date, plan: SubstitutionPlan)? in
-                guard let planDate = germanFormatter.date(from: plan.date),
+                guard let planDate = formatter.date(from: plan.planDate),
                       planDate >= today else { return nil }
                 return (date: planDate, plan: plan)
             }
             .sorted { $0.date < $1.date }
         
         if let nextPlan = futurePlans.first {
-            return nextPlan.plan.substitutions?.count ?? 0
+            return nextPlan.plan.substitutions.count
         }
         
         return 0

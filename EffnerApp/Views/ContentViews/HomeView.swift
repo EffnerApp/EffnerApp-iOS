@@ -64,10 +64,10 @@ struct HomeView: View {
         
         let today = Calendar.current.startOfDay(for: Date())
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
+        dateFormatter.dateFormat = "yyyy-MM-dd"
         
         for plan in plans {
-            if let planDate = dateFormatter.date(from: plan.date),
+            if let planDate = dateFormatter.date(from: plan.planDate),
                Calendar.current.isDate(planDate, inSameDayAs: today) {
                 return plan.substitutions
             }
@@ -82,15 +82,13 @@ struct HomeView: View {
         
         let today = Calendar.current.startOfDay(for: Date())
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
+        dateFormatter.dateFormat = "yyyy-MM-dd"
         
         // Infos aus den nächsten 2 Tagen sammeln
         for plan in plans {
-            if let planDate = dateFormatter.date(from: plan.date),
+            if let planDate = dateFormatter.date(from: plan.planDate),
                planDate >= today  {
-                if let planInfos = plan.infos {
-                    infos.append(contentsOf: planInfos)
-                }
+                infos.append(contentsOf: plan.infos)
             }
         }
         

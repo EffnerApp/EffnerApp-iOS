@@ -9,11 +9,11 @@ import Foundation
 struct TimetablesEndpoint : Endpoint {
     
     var baseURL: URL {
-        URL(string: Constants.baseURL)!
+        URL(string: Constants.ssbURL)!
     }
     
     var path: String {
-        "/timetables/" + (UserSession.shared.user!.primaryClass ?? "")
+        "/timetables/class/" + (UserSession.shared.user!.primaryClass ?? "")
     }
     
     var method: HTTPMethod {
@@ -21,7 +21,7 @@ struct TimetablesEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateAuth()
+        UserSession.shared.user!.generateSSBBasicAuth()
     }
     
     var headers: [String : String]? {

@@ -15,12 +15,8 @@ struct TimelineBarComponent: View {
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date())
     
-    private var timetable: Timetable? {
-        timetableCache.cachedResponse?.data.first
-    }
-    
-    private var schedule: [Array<Int>?]? {
-        timetableCache.cachedResponse?.schedule
+    private var timetable: TimetableResponse? {
+        timetableCache.cachedResponse
     }
     
     private var forcedDayIndex: Int? {
@@ -38,14 +34,14 @@ struct TimelineBarComponent: View {
             if let timetable = timetable {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 3) {
-                        ForEach(Array(todayLessons.enumerated()), id: \.offset) { index, subject in
+                        ForEach(Array(todaySlots.enumerated()), id: \.offset) { index, slotInfo in
                             TimelineSubjectCard(
-                                subject: subject,
+                                subject: slotInfo.displayText,
                                 period: index + 1,
-                                color: subjectColor(for: subject, in: timetable),
+                                color: slotInfo.color,
                                 hasSubstitution: hasSubstitutionForPeriod(index + 1),
-                                timeRange: timeRangeForPeriod(index),
-                                isCurrent: isCurrentLesson(period: index)
+                                timeRange: slotInfo.timeRange,
+                                isCurrent: isCurrentLesson(slot: slotInfo.slot)
                             )
                         }
                     }
@@ -84,9 +80,9 @@ struct TimelineBarComponent: View {
             }
             
             // Prüfen ob der Tag ein Schultag ist und Unterricht hat
-            if dayIndex >= 0 && dayIndex < timetable.lessons.count {
-                let lessons = timetable.lessons[dayIndex].filter { !$0.isEmpty }
-                if !lessons.isEmpty {
+            if dayIndex >= 0 {
+                let hasLessons = timetable.slots.contains { !$0.subjects(for: dayIndex).isEmpty }
+                if hasLessons {
                     return (checkDate, dayIndex)
                 }
             }
@@ -102,38 +98,43 @@ struct TimelineBarComponent: View {
     }
 
     
-    private var todayLessons: [String] {
+    /// Returns the slots that have subjects for the current day, along with display info
+    private var todaySlots: [(slot: TimetableSlot, displayText: String, timeRange: String, color: Color)] {
         guard let timetable = timetable else { return [] }
         
-        // Wenn ein forcedDayIndex übergeben wurde, diesen verwenden
         let dayIndex: Int
         if let forced = forcedDayIndex {
             dayIndex = forced
         } else {
             let weekday = Calendar.current.component(.weekday, from: Date())
-            
-            // Umrechnung: Swift weekday (1=Sonntag, 2=Montag, ..., 7=Samstag)
-            // zu Stundenplan dayIndex (0=Montag, 1=Dienstag, ..., 4=Freitag)
             switch weekday {
-            case 2: dayIndex = 0 // Montag
-            case 3: dayIndex = 1 // Dienstag
-            case 4: dayIndex = 2 // Mittwoch
-            case 5: dayIndex = 3 // Donnerstag
-            case 6: dayIndex = 4 // Freitag
-            default: dayIndex = -1 // Samstag (7) und Sonntag (1) haben keinen Unterricht
+            case 2: dayIndex = 0
+            case 3: dayIndex = 1
+            case 4: dayIndex = 2
+            case 5: dayIndex = 3
+            case 6: dayIndex = 4
+            default: dayIndex = -1
             }
         }
         
-        guard dayIndex >= 0 && dayIndex < timetable.lessons.count else { return [] }
+        guard dayIndex >= 0 else { return [] }
         
-        return timetable.lessons[dayIndex].filter { !$0.isEmpty }
+        return timetable.slots.compactMap { slot in
+            let subjects = slot.subjects(for: dayIndex)
+            guard !subjects.isEmpty else { return nil }
+            
+            let displayText = subjects.map(\.name).joined(separator: "/")
+            let color = subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+            let timeRange = formatTimeRange(start: slot.timeStart, end: slot.timeEnd)
+            return (slot: slot, displayText: displayText, timeRange: timeRange, color: color)
+        }
     }
     
-    private func subjectColor(for subject: String, in timetable: Timetable) -> Color {
-        guard let meta = timetable.meta.first(where: { $0.subject == subject }) else {
-            return .gray
-        }
-        return Color(hex: meta.color) ?? .gray
+    private func formatTimeRange(start: String, end: String) -> String {
+        // Format "HH:mm:ss" to "HH:mm-HH:mm"
+        let startShort = String(start.prefix(5))
+        let endShort = String(end.prefix(5))
+        return "\(startShort)-\(endShort)"
     }
     
     private func hasSubstitutionForPeriod(_ period: Int) -> Bool {
@@ -141,57 +142,17 @@ struct TimelineBarComponent: View {
         return substitutions.contains { $0.period == "\(period)" }
     }
     
-    private func timeRangeForPeriod(_ period: Int) -> String {
-        guard let schedule = schedule else { return "" }
-        
-        // Der Schedule enthält Start- und Endzeiten in Paaren: [start, end, start, end, ...]
-        let startIndex = period * 2
-        let endIndex = startIndex + 1
-        
-        guard endIndex < schedule.count,
-              let startTime = schedule[startIndex],
-              let endTime = schedule[endIndex],
-              startTime.count == 2,
-              endTime.count == 2 else {
-            return ""
-        }
-        
-        let startHour = startTime[0]
-        let startMin = startTime[1]
-        let endHour = endTime[0]
-        let endMin = endTime[1]
-        
-        return String(format: "%02d:%02d-%02d:%02d", startHour, startMin, endHour, endMin)
-    }
-    
-    private func isCurrentLesson(period: Int) -> Bool {
-        guard let schedule = schedule else { return false }
+    private func isCurrentLesson(slot: TimetableSlot) -> Bool {
+        guard let start = slot.startComponents,
+              let end = slot.endComponents else { return false }
         
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: currentTime)
         let minute = calendar.component(.minute, from: currentTime)
         
-        // Der Schedule enthält Start- und Endzeiten in Paaren: [start, end, start, end, ...]
-        // period ist 0-basiert, daher: Stunde 0 = schedule[0] bis schedule[1]
-        let startIndex = period * 2
-        let endIndex = startIndex + 1
-        
-        guard endIndex < schedule.count,
-              let startTime = schedule[startIndex],
-              let endTime = schedule[endIndex],
-              startTime.count == 2,
-              endTime.count == 2 else {
-            return false
-        }
-        
-        let startHour = startTime[0]
-        let startMin = startTime[1]
-        let endHour = endTime[0]
-        let endMin = endTime[1]
-        
         let currentMinutes = hour * 60 + minute
-        let startMinutes = startHour * 60 + startMin
-        let endMinutes = endHour * 60 + endMin
+        let startMinutes = start.hour * 60 + start.minute
+        let endMinutes = end.hour * 60 + end.minute
         
         return currentMinutes >= startMinutes && currentMinutes <= endMinutes
     }
@@ -254,4 +215,3 @@ struct TimelineSubjectCard: View {
         )
     }
 }
-

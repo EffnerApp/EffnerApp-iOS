@@ -8,118 +8,71 @@
 import Foundation
 
 struct MockTimetable {
-    /// Standard Mock-Stundenplan für die Klasse 10a
+    /// Standard Mock-Stundenplan für die Klasse 6A
     public static let mockTimetable: TimetableResponse = TimetableResponse(
-        data: [
-            Timetable(
-                meta: [
-                    SubjectMeta(subject: "Mathematik", color: "#3B82F6"),      // Blau
-                    SubjectMeta(subject: "Deutsch", color: "#EF4444"),         // Rot
-                    SubjectMeta(subject: "Englisch", color: "#10B981"),        // Grün
-                    SubjectMeta(subject: "Physik", color: "#8B5CF6"),          // Lila
-                    SubjectMeta(subject: "Chemie", color: "#F59E0B"),          // Orange
-                    SubjectMeta(subject: "Biologie", color: "#14B8A6"),        // Türkis
-                    SubjectMeta(subject: "Geschichte", color: "#D97706"),      // Braun
-                    SubjectMeta(subject: "Sport", color: "#06B6D4"),           // Cyan
-                    SubjectMeta(subject: "Informatik", color: "#6366F1"),      // Indigo
-                    SubjectMeta(subject: "Kunst", color: "#EC4899"),           // Pink
-                    SubjectMeta(subject: "Musik", color: "#F472B6"),           // Rosa
-                    SubjectMeta(subject: "Geographie", color: "#84CC16")       // Lime
-                ],
-                lessons: [
-                    // Montag - 6 Stunden
-                    ["Mathematik", "Mathematik", "Deutsch", "Englisch", "Physik", "Physik", "", "", "", ""],
-                    // Dienstag - 7 Stunden
-                    ["Englisch", "Deutsch", "Deutsch", "Sport", "Sport", "Chemie", "Chemie", "", "", ""],
-                    // Mittwoch - 6 Stunden
-                    ["Biologie", "Biologie", "Mathematik", "Mathematik", "Geschichte", "Informatik", "", "", "", ""],
-                    // Donnerstag - 8 Stunden (langer Tag)
-                    ["Physik", "Chemie", "Englisch", "Englisch", "Deutsch", "Mathematik", "Kunst", "Kunst", "", ""],
-                    // Freitag - 6 Stunden
-                    ["Geschichte", "Geschichte", "Biologie", "Sport", "Sport", "Mathematik", "", "", "", ""]
-                ],
-                updatedAt: "2025-11-16T10:30:00Z",
-                className: "10a"
-            )
-        ],
-        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
-    )
-    
-    /// Alternative Mock-Stundenpläne für verschiedene Klassen
-    public static let mockFullDay: TimetableResponse = TimetableResponse(
-        data: [
-            Timetable(
-                meta: [
-                    SubjectMeta(subject: "Mathematik", color: "#3B82F6"),
-                    SubjectMeta(subject: "Deutsch", color: "#EF4444"),
-                    SubjectMeta(subject: "Englisch", color: "#10B981"),
-                    SubjectMeta(subject: "Französisch", color: "#A855F7"),
-                    SubjectMeta(subject: "Physik", color: "#8B5CF6"),
-                    SubjectMeta(subject: "Chemie", color: "#F59E0B"),
-                    SubjectMeta(subject: "Biologie", color: "#14B8A6"),
-                    SubjectMeta(subject: "Geschichte", color: "#D97706"),
-                    SubjectMeta(subject: "Geographie", color: "#84CC16"),
-                    SubjectMeta(subject: "Sport", color: "#06B6D4"),
-                    SubjectMeta(subject: "Informatik", color: "#6366F1"),
-                    SubjectMeta(subject: "Kunst", color: "#EC4899"),
-                    SubjectMeta(subject: "Musik", color: "#F472B6"),
-                    SubjectMeta(subject: "Wirtschaft", color: "#059669")
-                ],
-                lessons: [
-                    // Montag - voller Tag mit 9 Stunden
-                    ["Mathematik", "Mathematik", "Deutsch", "Englisch", "Physik", "Chemie", "Informatik", "Informatik", "Wirtschaft", ""],
-                    // Dienstag - 8 Stunden
-                    ["Englisch", "Französisch", "Französisch", "Sport", "Sport", "Biologie", "Chemie", "Mathematik", "", ""],
-                    // Mittwoch - 7 Stunden
-                    ["Biologie", "Physik", "Mathematik", "Mathematik", "Geschichte", "Geographie", "Informatik", "", "", ""],
-                    // Donnerstag - 9 Stunden
-                    ["Deutsch", "Deutsch", "Englisch", "Französisch", "Sport", "Mathematik", "Kunst", "Kunst", "Musik", ""],
-                    // Freitag - 6 Stunden (kurzer Tag)
-                    ["Geschichte", "Geographie", "Biologie", "Mathematik", "Deutsch", "Englisch", "", "", "", ""]
-                ],
-                updatedAt: "2025-11-16T08:00:00Z",
-                className: "11b"
-            )
-        ],
-        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
-    )
-    
-    /// Mock mit weniger Stunden (Unterstufe)
-    public static let mockLightSchedule: TimetableResponse = TimetableResponse(
-        data: [
-            Timetable(
-                meta: [
-                    SubjectMeta(subject: "Mathematik", color: "#3B82F6"),
-                    SubjectMeta(subject: "Deutsch", color: "#EF4444"),
-                    SubjectMeta(subject: "Englisch", color: "#10B981"),
-                    SubjectMeta(subject: "Biologie", color: "#14B8A6"),
-                    SubjectMeta(subject: "Geschichte", color: "#D97706"),
-                    SubjectMeta(subject: "Sport", color: "#06B6D4"),
-                    SubjectMeta(subject: "Kunst", color: "#EC4899"),
-                    SubjectMeta(subject: "Musik", color: "#F472B6")
-                ],
-                lessons: [
-                    // Montag - 5 Stunden
-                    ["Mathematik", "Deutsch", "Englisch", "Sport", "Sport", "", "", "", "", ""],
-                    // Dienstag - 6 Stunden
-                    ["Deutsch", "Deutsch", "Mathematik", "Biologie", "Kunst", "Kunst", "", "", "", ""],
-                    // Mittwoch - 5 Stunden
-                    ["Englisch", "Englisch", "Mathematik", "Geschichte", "Musik", "", "", "", "", ""],
-                    // Donnerstag - 6 Stunden
-                    ["Biologie", "Deutsch", "Englisch", "Mathematik", "Sport", "Sport", "", "", "", ""],
-                    // Freitag - 4 Stunden (früher Schluss!)
-                    ["Geschichte", "Mathematik", "Deutsch", "Englisch", "", "", "", "", "", ""]
-                ],
-                updatedAt: "2025-11-16T09:15:00Z",
-                className: "7c"
-            )
-        ],
-        schedule: [[8,0],[8,45],[9,45],[10,30],[11,30],[12,15],[13,0],[13,45],[14,30],[15,15],[16,0],[16,45]]
+        className: "6A",
+        fetchedAt: "2026-03-14T14:59:32.539797",
+        slots: [
+            TimetableSlot(timeStart: "08:00:00", timeEnd: "08:45:00",
+                          monday: [Subject(name: "L", color: "#9E9E9E"), Subject(name: "F", color: "#0D47A1")],
+                          tuesday: [Subject(name: "E", color: "#B71C1C")],
+                          wednesday: [Subject(name: "KuSt", color: "#9E9E9E")],
+                          thursday: [Subject(name: "Sm", color: "#9E9E9E"), Subject(name: "Sw", color: "#004D40")],
+                          friday: [Subject(name: "E", color: "#B71C1C")]),
+            TimetableSlot(timeStart: "08:45:00", timeEnd: "09:30:00",
+                          monday: [Subject(name: "L", color: "#9E9E9E"), Subject(name: "F", color: "#0D47A1")],
+                          tuesday: [Subject(name: "E", color: "#B71C1C")],
+                          wednesday: [Subject(name: "KuSt", color: "#9E9E9E")],
+                          thursday: [Subject(name: "Sm", color: "#9E9E9E"), Subject(name: "Sw", color: "#004D40")],
+                          friday: [Subject(name: "L", color: "#9E9E9E"), Subject(name: "F", color: "#0D47A1")]),
+            TimetableSlot(timeStart: "09:45:00", timeEnd: "10:30:00",
+                          monday: [Subject(name: "M", color: "#6A1B9A")],
+                          tuesday: [Subject(name: "D", color: "#1565C0")],
+                          wednesday: [Subject(name: "M", color: "#6A1B9A")],
+                          thursday: [Subject(name: "D", color: "#1565C0")],
+                          friday: [Subject(name: "LInt", color: "#9E9E9E"), Subject(name: "FInt", color: "#9E9E9E"), Subject(name: "Inf", color: "#263238")]),
+            TimetableSlot(timeStart: "10:30:00", timeEnd: "11:15:00",
+                          monday: [Subject(name: "BSt", color: "#9E9E9E")],
+                          tuesday: [Subject(name: "G", color: "#4E342E")],
+                          wednesday: [Subject(name: "M", color: "#6A1B9A")],
+                          thursday: [Subject(name: "D", color: "#1565C0")],
+                          friday: [Subject(name: "LInt", color: "#9E9E9E"), Subject(name: "FInt", color: "#9E9E9E"), Subject(name: "Inf", color: "#263238")]),
+            TimetableSlot(timeStart: "11:30:00", timeEnd: "12:15:00",
+                          monday: [Subject(name: "E", color: "#B71C1C")],
+                          tuesday: [Subject(name: "K", color: "#1A237E"), Subject(name: "Ev", color: "#283593"), Subject(name: "Ort", color: "#9E9E9E"), Subject(name: "Eth", color: "#546E7A")],
+                          wednesday: [Subject(name: "L", color: "#9E9E9E"), Subject(name: "F", color: "#0D47A1")],
+                          thursday: [Subject(name: "MuSt", color: "#9E9E9E")],
+                          friday: [Subject(name: "K", color: "#1A237E"), Subject(name: "Ev", color: "#283593"), Subject(name: "Ort", color: "#9E9E9E"), Subject(name: "Eth", color: "#546E7A")]),
+            TimetableSlot(timeStart: "12:15:00", timeEnd: "13:00:00",
+                          monday: [Subject(name: "MuSt", color: "#9E9E9E")],
+                          tuesday: [Subject(name: "M", color: "#6A1B9A")],
+                          wednesday: [Subject(name: "D", color: "#1565C0")],
+                          thursday: [Subject(name: "BSt", color: "#9E9E9E")],
+                          friday: [Subject(name: "G", color: "#4E342E")]),
+            TimetableSlot(timeStart: "13:00:00", timeEnd: "13:45:00",
+                          monday: [], tuesday: [], wednesday: [],
+                          thursday: [], friday: []),
+            TimetableSlot(timeStart: "13:45:00", timeEnd: "14:30:00",
+                          monday: [Subject(name: "SSp", color: "#9E9E9E")],
+                          tuesday: [], wednesday: [],
+                          thursday: [], friday: []),
+            TimetableSlot(timeStart: "14:30:00", timeEnd: "15:15:00",
+                          monday: [Subject(name: "SSp", color: "#9E9E9E")],
+                          tuesday: [], wednesday: [],
+                          thursday: [], friday: []),
+            TimetableSlot(timeStart: "15:15:00", timeEnd: "16:00:00",
+                          monday: [], tuesday: [], wednesday: [],
+                          thursday: [], friday: []),
+            TimetableSlot(timeStart: "16:00:00", timeEnd: "16:45:00",
+                          monday: [], tuesday: [], wednesday: [],
+                          thursday: [], friday: [])
+        ]
     )
     
     /// Mock mit leeren Daten (für Tests)
     public static let mockEmpty: TimetableResponse = TimetableResponse(
-        data: [],
-        schedule: []
+        className: "",
+        fetchedAt: "",
+        slots: []
     )
 }

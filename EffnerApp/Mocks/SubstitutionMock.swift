@@ -11,111 +11,121 @@ struct MockSubstitution {
     public static let mockSubstitutionPlans: SubstitutionResponse = SubstitutionResponse(
         plans: [
             SubstitutionPlan(
-                date: "08.11.2025",
-                absent: [
-                    Absent(className: "10a", periods: "1,2,3"),
-                    Absent(className: "10b", periods: "4,5"),
-                    Absent(className: "11c", periods: "6,7")
-                ],
-                hash: "mock-hash-12345",
-                title: "Vertretungsplan vom 08.11.2025",
+                id: 20527,
+                title: "Vertretungsplan für Freitag, 8.11.2025",
+                planDate: "2025-11-08",
+                createdAt: "2025-11-07T13:00:00",
                 infos: [
                     "Unterrichtsende nach der 6. Stunde",
                     "Die Mensa hat geöffnet",
                     "Pausenaufsicht Herr Schmidt"
                 ],
+                absences: [
+                    Absence(className: "10a", periods: "1,2,3"),
+                    Absence(className: "10b", periods: "4,5"),
+                    Absence(className: "11c", periods: "6,7")
+                ],
                 substitutions: [
                     Substitution(
-                        period: "1",
+                        klassName: "13Q3",
                         teacher: "Müller",
                         substitute: "Schmidt",
+                        period: "1",
                         room: "A101",
                         info: "Mathematik statt Deutsch"
                     ),
                     Substitution(
-                        period: "2",
+                        klassName: "13Q3",
                         teacher: "Meyer",
                         substitute: "Fischer",
+                        period: "2",
                         room: "B205",
                         info: "Selbststudium"
                     ),
                     Substitution(
-                        period: "3",
+                        klassName: "13Q3",
                         teacher: "Weber",
                         substitute: nil,
+                        period: "3",
                         room: nil,
                         info: "Entfall"
                     ),
                     Substitution(
-                        period: "4",
+                        klassName: "13Q3",
                         teacher: "Schulz",
                         substitute: "Wagner",
+                        period: "4",
                         room: "C302",
                         info: "Englisch - Raumwechsel"
                     ),
                     Substitution(
-                        period: "5",
+                        klassName: "13Q3",
                         teacher: "Koch",
                         substitute: "Becker",
+                        period: "5",
                         room: "A104",
                         info: "Physik"
                     )
-                ],
-                createdAt: Date()
+                ]
             ),
             
             SubstitutionPlan(
-                date: "22.11.2026",
-                absent: [
-                    Absent(className: "10a", periods: "1,2,3"),
-                    Absent(className: "10b", periods: "4,5"),
-                    Absent(className: "11c", periods: "6,7")
-                ],
-                hash: "mock-hash-12345",
-                title: "Vertretungsplan vom 08.11.2025",
+                id: 20528,
+                title: "Vertretungsplan für Samstag, 22.11.2026",
+                planDate: "2026-11-22",
+                createdAt: "2026-11-21T13:00:00",
                 infos: [
                     "Unterrichtsende nach der 6. Stunde",
                     "Die Mensa hat geöffnet",
                     "Pausenaufsicht Herr Schmidt"
                 ],
+                absences: [
+                    Absence(className: "10a", periods: "1,2,3"),
+                    Absence(className: "10b", periods: "4,5"),
+                    Absence(className: "11c", periods: "6,7")
+                ],
                 substitutions: [
                     Substitution(
-                        period: "1",
+                        klassName: "13Q3",
                         teacher: "Müller",
                         substitute: "Schmidt",
+                        period: "1",
                         room: "A101",
                         info: "Mathematik statt Deutsch"
                     ),
                     Substitution(
-                        period: "2",
+                        klassName: "13Q3",
                         teacher: "Meyer",
                         substitute: "Fischer",
+                        period: "2",
                         room: "B205",
                         info: "Selbststudium"
                     ),
                     Substitution(
-                        period: "3",
+                        klassName: "13Q3",
                         teacher: "Weber",
                         substitute: nil,
+                        period: "3",
                         room: nil,
                         info: "Entfall"
                     ),
                     Substitution(
-                        period: "4",
+                        klassName: "13Q3",
                         teacher: "Schulz",
                         substitute: "Wagner",
+                        period: "4",
                         room: "C302",
                         info: "Englisch - Raumwechsel"
                     ),
                     Substitution(
-                        period: "5",
+                        klassName: "13Q3",
                         teacher: "Koch",
                         substitute: "Becker",
+                        period: "5",
                         room: "A104",
                         info: "Physik"
                     )
-                ],
-                createdAt: Date()
+                ]
             )
         ]
     )

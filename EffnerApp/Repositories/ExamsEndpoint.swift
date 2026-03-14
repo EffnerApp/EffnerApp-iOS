@@ -13,7 +13,11 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var path: String {
-        "/exams/" + (UserSession.shared.user!.primaryClass ?? "")
+        var klass = UserSession.shared.user!.primaryClass!
+        if (klass.starts(with: "12") || klass.starts(with: "13")) {
+            klass = String(klass.prefix(2))
+        }
+        return "/exams/" + klass
     }
     
     var method: HTTPMethod {

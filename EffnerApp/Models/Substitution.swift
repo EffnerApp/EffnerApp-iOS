@@ -7,12 +7,10 @@
 
 import Foundation
 
+// The SSB API returns [SubstitutionPlan] directly.
+// SubstitutionResponse wraps this array to keep the cache and view layer consistent.
 struct SubstitutionResponse: Codable {
     let plans: [SubstitutionPlan]
-    
-    enum CodingKeys: String, CodingKey {
-        case plans = "plans"
-    }
     
     init(plans: [SubstitutionPlan]) {
         self.plans = plans
@@ -21,38 +19,17 @@ struct SubstitutionResponse: Codable {
 
 // MARK: - Substitution Plan
 struct SubstitutionPlan: Codable, Identifiable {
-    var id: String { hash }
-    let date: String
-    let absent: [Absent]
-    let hash: String
+    let id: Int
     let title: String
-    let infos: [String]?
-    let substitutions: [Substitution]?
-    let createdAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case date
-        case absent
-        case hash
-        case title
-        case infos
-        case substitutions
-        case createdAt = "created_at"
-    }
-    
-    init(date: String, absent: [Absent], hash: String, title: String, infos: [String]?, substitutions: [Substitution]?, createdAt: Date) {
-        self.date = date
-        self.absent = absent
-        self.hash = hash
-        self.title = title
-        self.infos = infos
-        self.substitutions = substitutions
-        self.createdAt = createdAt
-    }
+    let planDate: String
+    let createdAt: String
+    let infos: [String]
+    let absences: [Absence]
+    let substitutions: [Substitution]
 }
 
-// MARK: - Absent Teacher
-struct Absent: Codable, Identifiable {
+// MARK: - Absence
+struct Absence: Codable, Identifiable {
     var id: String { className + periods }
     let className: String
     let periods: String
@@ -70,25 +47,19 @@ struct Absent: Codable, Identifiable {
 
 // MARK: - Substitution
 struct Substitution: Codable, Identifiable {
-    var id: String { "\(period)-\(teacher ?? "")-\(substitute ?? "")-\(room ?? "")" }
-    let period: String
+    var id: String { "\(klassName)-\(period)-\(teacher ?? "")-\(substitute ?? "")-\(room ?? "")" }
+    let klassName: String
     let teacher: String?
     let substitute: String?
+    let period: String
     let room: String?
     let info: String?
     
-    enum CodingKeys: String, CodingKey {
-        case period
-        case teacher
-        case substitute
-        case room
-        case info
-    }
-    
-    init(period: String, teacher: String?, substitute: String?, room: String?, info: String?) {
-        self.period = period
+    init(klassName: String, teacher: String?, substitute: String?, period: String, room: String?, info: String?) {
+        self.klassName = klassName
         self.teacher = teacher
         self.substitute = substitute
+        self.period = period
         self.room = room
         self.info = info
     }

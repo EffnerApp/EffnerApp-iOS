@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 
 enum PlanTimeType {
     case PAST, TODAY, FUTURE
@@ -30,8 +29,8 @@ struct SubstitutionsView: View {
             useScrollViewReader: true,
             scrollToId: { cache in
                 if let plans = substitutionsCache.cachedSubstitutionPlans?.plans,
-                   let firstFuturePlan = plans.first(where: { getPlanTimeType($0.date) == PlanTimeType.FUTURE }) {
-                    return "futureSubstitution_\(firstFuturePlan.date)"
+                   let firstFuturePlan = plans.first(where: { getPlanTimeType($0.planDate) == PlanTimeType.FUTURE }) {
+                    return "futureSubstitution_\(firstFuturePlan.planDate)"
                 }
                 return nil
             },
@@ -39,29 +38,29 @@ struct SubstitutionsView: View {
                 List {
                     if let plans = substitutionsCache.cachedSubstitutionPlans?.plans {
                         // Vergangene Tage
-                        ForEach(plans.filter { getPlanTimeType($0.date) == .PAST }, id: \.date) { plan in
-                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .PAST)) {
+                        ForEach(plans.filter { getPlanTimeType($0.planDate) == .PAST }) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.planDate, planTimeType: .PAST)) {
                                 SubstitutionDayContent(plan: plan)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
-                            .id("pastSubstitution_\(plan.date)")
+                            .id("pastSubstitution_\(plan.planDate)")
                         }
                         
-                        ForEach(plans.filter { getPlanTimeType($0.date) == .TODAY }, id: \.date) { plan in
-                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .TODAY)) {
+                        ForEach(plans.filter { getPlanTimeType($0.planDate) == .TODAY }) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.planDate, planTimeType: .TODAY)) {
                                 SubstitutionDayContent(plan: plan)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
-                            .id("todaysSubstitution_\(plan.date)")
+                            .id("todaysSubstitution_\(plan.planDate)")
                         }
                         
                         // Zukünftige Tage
-                        ForEach(plans.filter { getPlanTimeType($0.date) == .FUTURE }, id: \.date) { plan in
-                            Section(header: SubstitutionSeparatorView(date: plan.date, planTimeType: .FUTURE)) {
+                        ForEach(plans.filter { getPlanTimeType($0.planDate) == .FUTURE }) { plan in
+                            Section(header: SubstitutionSeparatorView(date: plan.planDate, planTimeType: .FUTURE)) {
                                 SubstitutionDayContent(plan: plan)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
-                            .id("futureSubstitution_\(plan.date)")
+                            .id("futureSubstitution_\(plan.planDate)")
                         }
                     }
                 }
@@ -75,10 +74,10 @@ struct SubstitutionsView: View {
     }
     
     private func getPlanTimeType(_ dateString: String) -> PlanTimeType {
-        let germanFormatter = DateFormatter()
-        germanFormatter.dateFormat = "dd.MM.yyyy"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
         
-        if let date = germanFormatter.date(from: dateString) {
+        if let date = formatter.date(from: dateString) {
             let calendar = Calendar.current
             let today = Date()
             
@@ -99,11 +98,10 @@ struct SubstitutionDayContent: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Prüfen ob es irgendwelche Ereignisse gibt
-            let hasInfos = plan.infos?.contains(where: { !$0.isEmpty }) ?? false
-            let hasAbsent = !plan.absent.isEmpty
-            let hasSubstitutions = !(plan.substitutions?.isEmpty ?? true)
-            let hasAnyEvents = hasInfos || hasAbsent || hasSubstitutions
+            let hasInfos = !plan.infos.isEmpty
+            let hasAbsences = !plan.absences.isEmpty
+            let hasSubstitutions = !plan.substitutions.isEmpty
+            let hasAnyEvents = hasInfos || hasAbsences || hasSubstitutions
             
             if !hasAnyEvents {
                 // Keine Ereignisse
@@ -114,12 +112,12 @@ struct SubstitutionDayContent: View {
                     .padding(.vertical, 16)
             } else {
                 // Informationen
-                if hasInfos, let infos = plan.infos {
+                if hasInfos {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Informationen")
                             .font(.headline)
                         
-                        ForEach(infos.filter { !$0.isEmpty }, id: \.self) { info in
+                        ForEach(plan.infos.filter { !$0.isEmpty }, id: \.self) { info in
                             HStack(alignment: .top) {
                                 Image(systemName: "info.circle.fill")
                                     .foregroundColor(.blue)
@@ -134,19 +132,19 @@ struct SubstitutionDayContent: View {
                 }
                 
                 // Abwesende Klassen
-                if hasAbsent {
+                if hasAbsences {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Abwesende Klassen")
                             .font(.headline)
                         
-                        ForEach(plan.absent) { absent in
+                        ForEach(plan.absences) { absence in
                             HStack {
-                                Text(absent.className)
+                                Text(absence.className)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
                                 Text("•")
                                     .foregroundColor(.secondary)
-                                Text("Stunden: \(absent.periods)")
+                                Text("Stunden: \(absence.periods)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -157,15 +155,15 @@ struct SubstitutionDayContent: View {
                 }
                 
                 // Vertretungen
-                if hasSubstitutions, let substitutions = plan.substitutions {
+                if hasSubstitutions {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Vertretungen")
                             .font(.headline)
                         
-                        ForEach(Array(substitutions.enumerated()), id: \.element.id) { index, substitution in
+                        ForEach(Array(plan.substitutions.enumerated()), id: \.element.id) { index, substitution in
                             SubstitutionRowView(
                                 substitution: substitution,
-                                isLast: index == substitutions.count - 1
+                                isLast: index == plan.substitutions.count - 1
                             )
                         }
                     }
@@ -245,6 +243,19 @@ struct SubstitutionSeparatorView: View {
     let date: String
     var planTimeType: PlanTimeType
     
+    private var formattedDate: String {
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "dd.MM.yyyy"
+        
+        if let parsed = inputFormatter.date(from: date) {
+            return outputFormatter.string(from: parsed)
+        }
+        return date
+    }
+    
     var body: some View {
         HStack {
             if planTimeType == .PAST {
@@ -260,7 +271,7 @@ struct SubstitutionSeparatorView: View {
             
             Spacer()
             
-            Text(date)
+            Text(formattedDate)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }

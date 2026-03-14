@@ -26,8 +26,8 @@ struct TimetableView: View {
             errorDescription: "Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: false,
             content: { cache in
-                if let timetable = timetablesCache.cachedResponse?.data.first {
-                    let maxLessons = getMaxLessons(from: timetable)
+                if let timetable = timetablesCache.cachedResponse {
+                    let visibleSlots = getVisibleSlots(from: timetable)
                     
                     ScrollView {
                         VStack(spacing: 0) {
@@ -47,25 +47,21 @@ struct TimetableView: View {
                             
                             Divider()
                             
-                            // Stundenplan Grid - nur bis zur maximalen Stundenanzahl
-                            ForEach(0..<maxLessons, id: \.self) { lessonIndex in
+                            // Stundenplan Grid
+                            ForEach(Array(visibleSlots.enumerated()), id: \.offset) { index, slot in
                                 HStack(spacing: 0) {
-                                    // Fächer für jeden Wochentag
                                     ForEach(0..<5, id: \.self) { dayIndex in
-                                        if dayIndex < timetable.lessons.count,
-                                           lessonIndex < timetable.lessons[dayIndex].count {
-                                            let subject = timetable.lessons[dayIndex][lessonIndex]
-                                            LessonCell(
-                                                subject: subject,
-                                                color: getColor(for: subject, meta: timetable.meta)
-                                            )
-                                        } else {
-                                            LessonCell(subject: "", color: .clear)
-                                        }
+                                        let subjects = slot.subjects(for: dayIndex)
+                                        let displayText = subjects.map(\.name).joined(separator: "/")
+                                        let color = subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+                                        LessonCell(
+                                            subject: displayText,
+                                            color: displayText.isEmpty ? .clear : color
+                                        )
                                     }
                                 }
                                 
-                                if lessonIndex < maxLessons - 1 {
+                                if index < visibleSlots.count - 1 {
                                     Divider()
                                 }
                             }
@@ -84,33 +80,16 @@ struct TimetableView: View {
         )
     }
     
-    // Hilfsfunktion um die maximale Anzahl nicht-leerer Stunden zu finden
-    private func getMaxLessons(from timetable: Timetable) -> Int {
-        var maxLessons = 0
-        
-        for day in timetable.lessons {
-            // Finde die letzte nicht-leere Stunde für diesen Tag
-            for (index, subject) in day.enumerated().reversed() {
-                if !subject.isEmpty {
-                    maxLessons = max(maxLessons, index + 1)
-                    break
-                }
+    // Hilfsfunktion: nur Slots anzeigen bis zum letzten Slot mit Unterricht
+    private func getVisibleSlots(from timetable: TimetableResponse) -> [TimetableSlot] {
+        var lastIndex = 0
+        for (index, slot) in timetable.slots.enumerated() {
+            if slot.hasAnySubjects {
+                lastIndex = index
             }
         }
-        
-        return maxLessons
+        return Array(timetable.slots.prefix(lastIndex + 1))
     }
-    
-    // Hilfsfunktion um die Farbe für ein Fach zu finden
-    private func getColor(for subject: String, meta: [SubjectMeta]) -> Color {
-        guard !subject.isEmpty else { return .clear }
-        
-        if let subjectMeta = meta.first(where: { $0.subject == subject }) {
-            return Color(hex: subjectMeta.color) ?? .blue
-        }
-        return .blue
-    }
-    
 }
 
 // MARK: - Lesson Cell

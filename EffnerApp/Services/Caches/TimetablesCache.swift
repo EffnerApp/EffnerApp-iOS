@@ -17,7 +17,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
             return true
         }
         // Auch Error wenn Daten leer sind
-        if case .loaded(let response) = loadState, response.data.isEmpty {
+        if case .loaded(let response) = loadState, response.slots.isEmpty {
             return true
         }
         return false

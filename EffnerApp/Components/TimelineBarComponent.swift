@@ -119,12 +119,28 @@ struct TimelineBarComponent: View {
         
         guard dayIndex >= 0 else { return [] }
         
-        return timetable.slots.compactMap { slot in
+        // Read version to trigger SwiftUI re-render when selections change
+        let _ = UserSession.shared.subjectSelectionsVersion
+        let selections = UserSession.shared.user?.loadSubjectSelections() ?? [:]
+        
+        return timetable.slots.enumerated().compactMap { (slotIndex, slot) in
             let subjects = slot.subjects(for: dayIndex)
             guard !subjects.isEmpty else { return nil }
             
-            let displayText = subjects.map(\.name).joined(separator: "/")
-            let color = subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+            let slotKey = "\(slotIndex)_\(dayIndex)"
+            let selectedName = selections[slotKey]
+            let selectedSubject = subjects.first(where: { $0.name == selectedName })
+            
+            let displayText: String
+            let color: Color
+            if let selected = selectedSubject {
+                displayText = selected.name
+                color = Color(hex: selected.color) ?? .blue
+            } else {
+                displayText = subjects.map(\.name).joined(separator: "/")
+                color = subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+            }
+            
             let timeRange = formatTimeRange(start: slot.timeStart, end: slot.timeEnd)
             return (slot: slot, displayText: displayText, timeRange: timeRange, color: color)
         }

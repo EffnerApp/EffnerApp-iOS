@@ -10,6 +10,11 @@ import SwiftUI
 struct TimetableView: View {
     @ObservedObject var timetablesCache = TimetablesCache.shared
     
+    @State private var subjectSelections: [String: String] = [:]
+    @State private var showingPicker = false
+    @State private var pickerSlotKey = ""
+    @State private var pickerSubjects: [Subject] = []
+    
     init(isPreview: Bool = false) {
         if isPreview {
             TimetablesCache.shared.saveTimetables(MockTimetable.mockTimetable)
@@ -33,7 +38,6 @@ struct TimetableView: View {
                         VStack(spacing: 0) {
                             // Header mit Wochentagen
                             HStack(spacing: 0) {
-                                // Wochentage
                                 ForEach(weekdays, id: \.self) { day in
                                     Text(day)
                                         .font(.caption)
@@ -52,12 +56,37 @@ struct TimetableView: View {
                                 HStack(spacing: 0) {
                                     ForEach(0..<5, id: \.self) { dayIndex in
                                         let subjects = slot.subjects(for: dayIndex)
-                                        let displayText = subjects.map(\.name).joined(separator: "/")
-                                        let color = subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+                                        let slotKey = "\(index)_\(dayIndex)"
+                                        let hasMultiple = subjects.count > 1
+                                        let selectedName = subjectSelections[slotKey]
+                                        let selectedSubject = subjects.first(where: { $0.name == selectedName })
+                                        
+                                        let displayText: String = {
+                                            if let selected = selectedSubject {
+                                                return selected.name
+                                            }
+                                            return subjects.map(\.name).joined(separator: "/")
+                                        }()
+                                        
+                                        let color: Color = {
+                                            if let selected = selectedSubject {
+                                                return Color(hex: selected.color) ?? .blue
+                                            }
+                                            return subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
+                                        }()
+                                        
                                         LessonCell(
                                             subject: displayText,
-                                            color: displayText.isEmpty ? .clear : color
+                                            color: displayText.isEmpty ? .clear : color,
+                                            isSelectable: hasMultiple
                                         )
+                                        .onTapGesture {
+                                            if hasMultiple {
+                                                pickerSlotKey = slotKey
+                                                pickerSubjects = subjects
+                                                showingPicker = true
+                                            }
+                                        }
                                     }
                                 }
                                 
@@ -78,6 +107,45 @@ struct TimetableView: View {
                 TimetableSkeletonView()
             }
         )
+        .onAppear {
+            loadSelections()
+        }
+        .onChange(of: timetablesCache.cachedResponse?.className) {
+            loadSelections()
+        }
+        .confirmationDialog("Fach auswählen", isPresented: $showingPicker, titleVisibility: .visible) {
+            ForEach(pickerSubjects, id: \.name) { subject in
+                Button(subject.name) {
+                    selectSubject(subject.name, for: pickerSlotKey)
+                }
+            }
+            if subjectSelections[pickerSlotKey] != nil {
+                Button("Alle anzeigen", role: .destructive) {
+                    clearSelection(for: pickerSlotKey)
+                }
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
+    }
+    
+    // MARK: - Selection Logic
+    
+    private func loadSelections() {
+        if let user = UserSession.shared.user {
+            subjectSelections = user.loadSubjectSelections()
+        }
+    }
+    
+    private func selectSubject(_ name: String, for key: String) {
+        subjectSelections[key] = name
+        UserSession.shared.user?.saveSubjectSelections(subjectSelections)
+        UserSession.shared.subjectSelectionsVersion += 1
+    }
+    
+    private func clearSelection(for key: String) {
+        subjectSelections.removeValue(forKey: key)
+        UserSession.shared.user?.saveSubjectSelections(subjectSelections)
+        UserSession.shared.subjectSelectionsVersion += 1
     }
     
     // Hilfsfunktion: nur Slots anzeigen bis zum letzten Slot mit Unterricht
@@ -96,6 +164,7 @@ struct TimetableView: View {
 struct LessonCell: View {
     let subject: String
     let color: Color
+    var isSelectable: Bool = false
     
     var body: some View {
         VStack {
@@ -110,6 +179,13 @@ struct LessonCell: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .foregroundStyle(.white)
+            }
+            
+            if isSelectable {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(.top, -4)
             }
         }
         .frame(maxWidth: .infinity)

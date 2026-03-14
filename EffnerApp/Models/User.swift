@@ -19,6 +19,7 @@ class UserSession: ObservableObject {
     //}
     var user: User? = nil
     var isCheckingAuthorization: Bool = true
+    var subjectSelectionsVersion: Int = 0
     
     private init() {
         // Initialize the UserSessions
@@ -173,10 +174,36 @@ struct User: Codable {
         KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier)
         // Remove Klasses from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userKlasses")
+        // Remove subject selections for all classes
+        for klass in klasses {
+            UserDefaults.standard.removeObject(forKey: "subjectSelections_\(klass)")
+        }
     }
     
     func saveKlasses() {
         UserDefaults.standard.set(klasses, forKey: "userKlasses")
+    }
+    
+    // MARK: - Subject Selections (Fächerauswahl im Stundenplan)
+    
+    /// Speichert die Fächerauswahl für die aktuelle primaryClass
+    func saveSubjectSelections(_ selections: [String: String]) {
+        guard let className = primaryClass else { return }
+        let key = "subjectSelections_\(className)"
+        if let data = try? JSONEncoder().encode(selections) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+    
+    /// Lädt die Fächerauswahl für die aktuelle primaryClass
+    func loadSubjectSelections() -> [String: String] {
+        guard let className = primaryClass else { return [:] }
+        let key = "subjectSelections_\(className)"
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let selections = try? JSONDecoder().decode([String: String].self, from: data) else {
+            return [:]
+        }
+        return selections
     }
     
 }

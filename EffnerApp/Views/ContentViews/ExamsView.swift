@@ -55,11 +55,10 @@ struct ExamsView: View {
     }
 
     private func isPastExam(_ exam: Exam) -> Bool {
-        let isoFormatter = ISO8601DateFormatter()
-        let germanFormatter = DateFormatter()
-        germanFormatter.dateFormat = "dd.MM.yyyy"
+        let isoFormatter = DateFormatter()
+        isoFormatter.dateFormat = "yyyy-MM-dd"
 
-        if let examDate = isoFormatter.date(from: exam.date) ?? germanFormatter.date(from: exam.date) {
+        if let examDate = isoFormatter.date(from: exam.dateFrom) {
             return examDate < Date()
         }
         return false
@@ -71,28 +70,23 @@ struct ExamRowView: View {
     var body: some View {
         HStack(alignment: .center) {
             VStack(alignment: .center, spacing: 0) {
-                Text(DateFormatterUtil.formatToShortDate(exam.date).components(separatedBy: " ")[0])
+                Text(DateFormatterUtil.formatToShortDate(exam.dateFrom).components(separatedBy: " ")[0])
                     .font(.title2)
-                Text(DateFormatterUtil.formatToShortDate(exam.date).components(separatedBy: " ")[1])
+                Text(DateFormatterUtil.formatToShortDate(exam.dateFrom).components(separatedBy: " ")[1])
                     .font(.system(size: 17))
             }
             .frame(alignment: .center)
 
             VStack(alignment: .leading, spacing: 0) {
-                Text(exam.name)
+                Text(exam.description)
                     .font(.title3)
                     .padding(.leading, 12)
 
-                HStack {
-                    if let examDate2 = exam.date2 {
-                        Text("bis \(DateFormatterUtil.formatToShortDate(examDate2))")
-                            .font(.subheadline)
-                    }
-                    if let course = exam.course {
-                        Text("Kurs: \(course)")
-                            .font(.subheadline)
-                    }
-                }.padding(.leading, 12)
+                if let examDateTo = exam.dateTo {
+                    Text("bis \(DateFormatterUtil.formatToShortDate(examDateTo))")
+                        .font(.subheadline)
+                        .padding(.leading, 12)
+                }
             }
         }
         .padding(.vertical, 0)

@@ -12,5 +12,5 @@ struct Constants {
     static let baseURL : String = "https://api.effner.app/v3"
     static let v4URL: String = "https://api.effner.app/v4"
     // TODO: Vor Release ssbURL auf HTTPS umstellen und NSAllowsArbitraryLoads in Info.plist entfernen
-    static let ssbURL: String = "http://192.168.178.141:8080/api"
+    static let ssbURL: String = "http://127.0.0.1:8080/api"
 }

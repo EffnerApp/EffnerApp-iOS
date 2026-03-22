@@ -9,19 +9,18 @@ import Foundation
 
 struct MockExam {
     public static let mockExams: ExamsResponse = ExamsResponse(
-        className: "test",
         exams: [
-            Exam(id: "1", date: "01.08.2025", date2: nil, name: "Mathematik", course: "Mathe 101"),
-            Exam(id: "2", date: "15.09.2025", date2: nil, name: "Physik", course: "Physik 202"),
-            Exam(id: "3", date: "01.10.2025", date2: nil, name: "Chemie", course: "Chemie 303"),
-            Exam(id: "4", date: "15.07.2025", date2: nil, name: "Biologie", course: "Bio 404"),
-            Exam(id: "5", date: "30.06.2025", date2: nil, name: "Informatik", course: "Informatik 505"),
-            Exam(id: "6", date: "20.12.2025", date2: nil, name: "Geschichte", course: "Geschichte 606"),
-            Exam(id: "7", date: "10.11.2025", date2: nil, name: "Geographie", course: "Geo 707"),
-            Exam(id: "8", date: "05.05.2025", date2: nil, name: "Englisch", course: "Englisch 808"),
-            Exam(id: "9", date: "25.04.2025", date2: nil, name: "Deutsch", course: "Deutsch 909"),
-            Exam(id: "10", date: "12.03.2025", date2: nil, name: "Kunst", course: "Kunst 010"),
-            Exam(id: "11", date: "18.02.2025", date2: nil, name: "Musik", course: "Musik 111")
+            Exam(dateFrom: "2025-10-01", description: "angek. Extemporale in Mathematik", subject: "Mathematik", examType: "EXTEMPORALE"),
+            Exam(dateFrom: "2025-10-09", description: "Extemporale in Wirtschaft und Recht", subject: "Wirtschaft und Recht", examType: "EXTEMPORALE"),
+            Exam(dateFrom: "2025-11-13", description: "Schulaufgabe in Deutsch", subject: "Deutsch", examType: "SCHULAUFGABE"),
+            Exam(dateFrom: "2025-11-27", description: "Schulaufgabe in Mathematik", subject: "Mathematik", examType: "SCHULAUFGABE"),
+            Exam(dateFrom: "2025-12-15", dateTo: "2025-12-19", description: "Weihnachtsfrieden"),
+            Exam(dateFrom: "2026-01-15", description: "Extemporale in Mathematik", subject: "Mathematik", examType: "EXTEMPORALE"),
+            Exam(dateFrom: "2026-02-05", description: "Schulaufgabe in Mathematik", subject: "Mathematik", examType: "SCHULAUFGABE"),
+            Exam(dateFrom: "2026-03-04", description: "mündl. Schulaufgabe in Englisch", subject: "Englisch", examType: "ORAL"),
+            Exam(dateFrom: "2026-03-25", description: "Schulaufgabe in Latein", subject: "Latein", examType: "SCHULAUFGABE"),
+            Exam(dateFrom: "2026-05-07", description: "Schulaufgabe in Mathematik", subject: "Mathematik", examType: "SCHULAUFGABE"),
+            Exam(dateFrom: "2026-06-17", description: "Schulaufgabe in Englisch", subject: "Englisch", examType: "SCHULAUFGABE")
         ]
     )
 }

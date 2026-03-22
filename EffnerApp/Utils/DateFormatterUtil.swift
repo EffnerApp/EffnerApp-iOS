@@ -10,13 +10,17 @@ import Foundation
 struct DateFormatterUtil {
     
     public static func formatToShortDate(_ dateString: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy"
+        let germanFormatter = DateFormatter()
+        germanFormatter.dateFormat = "dd.MM.yyyy"
         
-        if let date = formatter.date(from: dateString) {
-            formatter.dateFormat = "d. MMM"
-            formatter.locale = Locale(identifier: "de_DE")
-            return formatter.string(from: date)
+        let isoFormatter = DateFormatter()
+        isoFormatter.dateFormat = "yyyy-MM-dd"
+        
+        if let date = germanFormatter.date(from: dateString) ?? isoFormatter.date(from: dateString) {
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateFormat = "d. MMM"
+            displayFormatter.locale = Locale(identifier: "de_DE")
+            return displayFormatter.string(from: date)
         }
         return dateString // Return the original string if parsing fails
     }

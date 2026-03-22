@@ -9,15 +9,11 @@ import Foundation
 struct ExamsEndpoint : Endpoint {
     
     var baseURL: URL {
-        URL(string: Constants.baseURL)!
+        URL(string: Constants.ssbURL)!
     }
     
     var path: String {
-        var klass = UserSession.shared.user!.primaryClass!
-        if (klass.starts(with: "12") || klass.starts(with: "13")) {
-            klass = String(klass.prefix(2))
-        }
-        return "/exams/" + klass
+        "/exams/class/" + (UserSession.shared.user!.primaryClass ?? "")
     }
     
     var method: HTTPMethod {
@@ -25,7 +21,7 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateAuth()
+        UserSession.shared.user!.generateSSBBasicAuth()
     }
     
     var headers: [String : String]? {

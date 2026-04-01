@@ -14,7 +14,7 @@ struct DeleteUserEndpoint : Endpoint {
     }
     
     var path: String {
-        "/users/\(UserSession.shared.user!.ssbId)"
+        "/users/\(UserSession.shared.user?.ssbId ?? "")"
     }
     
     var method: HTTPMethod {
@@ -22,7 +22,7 @@ struct DeleteUserEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

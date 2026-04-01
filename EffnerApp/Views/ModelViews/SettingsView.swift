@@ -125,8 +125,10 @@ struct SettingsView: View {
                 .alert("Abmelden", isPresented: $showingLogoutAlert) {
                     Button("Abbrechen", role: .cancel) { }
                     Button("Abmelden", role: .destructive) {
-                        session.logout()
-                        dismiss()
+                        Task {
+                            await session.logout()
+                            dismiss()
+                        }
                     }
                 } message: {
                     Text("Möchtest du dich wirklich abmelden?")

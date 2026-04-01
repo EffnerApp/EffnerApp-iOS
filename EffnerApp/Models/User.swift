@@ -108,12 +108,15 @@ class UserSession: ObservableObject {
     }
     
     @MainActor
-    func logout() {
-        // Clear user session
+    func logout() async {
+        // Delete user on backend while session is still active
+        _ = await NotificationService.shared.deleteUser()
+        NotificationService.shared.isEnabled = false
+        UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+        
+        // Now clear credentials and user session
         user?.clearCredentials()
         user?.clearSSBCredentials()
-        
-        NotificationService.shared.disableNotifications()
         user = nil
         print("User logged out and credentials cleared.")
         

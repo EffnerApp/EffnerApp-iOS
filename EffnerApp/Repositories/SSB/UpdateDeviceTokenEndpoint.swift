@@ -15,7 +15,7 @@ struct UpdateDeviceTokenEndpoint: Endpoint {
     }
     
     var path: String {
-        "/users/\(UserSession.shared.user!.ssbId)/device-token"
+        "/users/\(UserSession.shared.user?.ssbId ?? "")/device-token"
     }
     
     var method: HTTPMethod {
@@ -23,7 +23,7 @@ struct UpdateDeviceTokenEndpoint: Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

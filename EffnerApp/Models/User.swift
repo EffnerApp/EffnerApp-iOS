@@ -150,11 +150,8 @@ struct User: Codable {
         return Authentication.ssbToken(id: ssbId, token: ssbToken)
     }
     
-    mutating func saveSSBCredentials(id: String, token: String) {
-        ssbId = id
-        ssbToken = token
-        
-        _ = KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", item: KeyChainItem(key: id, value: token))
+     func saveSSBCredentials() {
+        _ = KeyChainUtil.saveToKeyChain(serviceName: Constants.bundleIdentifier + ".ssb", item: KeyChainItem(key: ssbId, value: ssbToken))
     }
     
     mutating func clearSSBCredentials() {

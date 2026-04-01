@@ -1,14 +1,14 @@
 //
-//  CreateUserEndpoint.swift
+//  GetUserEndpoint.swift
 //  EffnerApp
 //
-//  Created by Luis Bros on 25.01.26.
+//  Created by Luis Bros on 01.04.26.
 //
 
 import Foundation
 
-struct CreateUserEndpoint : Endpoint {
-    let ssbUserRequest: SSBUserRequest
+struct GetUserEndpoint: Endpoint {
+    let userId: String
     let auth: Authentication
     
     var baseURL: URL {
@@ -16,27 +16,22 @@ struct CreateUserEndpoint : Endpoint {
     }
     
     var path: String {
-        "/users"
+        "/users/\(userId)"
     }
     
     var method: HTTPMethod {
-        .post
+        .get
     }
     
     var authentication: Authentication? {
         auth
     }
     
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         nil
     }
     
     var parameters: [String: Any]? {
         nil
     }
-    
-    var body: Encodable? {
-        ssbUserRequest
-    }
-    
 }

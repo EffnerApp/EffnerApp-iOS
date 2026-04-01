@@ -15,26 +15,39 @@ class AuthService : ObservableObject {
         self.networkManager = networkManager
     }
     
-    func login(username: String, password: String, klasses: [String]) async -> Result<User, NetworkError> {
-        let authentication = Authentication(username: username, password: password)
+    func register(username: String, password: String, klasses: [String]) async -> Result<User, NetworkError> {
+        let auth = Authentication.ssbBasic(username: username, password: password)
+        let deviceToken = await NotificationService.shared.deviceToken
+        let ssbUserRequest = SSBUserRequest(deviceToken: deviceToken, classes: klasses)
         
         do {
-            let loginResponse: LoginResponse = try await networkManager.fetch(from: AuthEndpoint(auth: authentication))
-            guard loginResponse.status.login else {
-                self.error = .clientError(statusCode: 403)
+            let ssbUserResponse: SSBUserResponse = try await networkManager.fetch(
+                from: CreateUserEndpoint(ssbUserRequest: ssbUserRequest, auth: auth)
+            )
+            
+            guard let ssbToken = ssbUserResponse.token else {
+                self.error = .serverError(statusCode: 500, msg: "Server did not return a token on user creation.")
                 return .failure(self.error!)
             }
             
-            let user = User(ssbId: "", ssbToken: "", username: username, password: password, klasses: klasses, isAuthorized: true)
+            let user = User(
+                ssbId: ssbUserResponse.id,
+                ssbToken: ssbToken,
+                username: username,
+                password: password,
+                klasses: klasses,
+                isAuthorized: true
+            )
             
-            // Update on main thread
             await MainActor.run {
                 UserSession.shared.setUser(user: user)
             }
             
             user.saveCredentials()
             user.saveKlasses()
+            user.saveSSBCredentials()
             
+            print("SSB user created successfully: \(ssbUserResponse.id)")
             return .success(user)
         } catch let networkError as NetworkError {
             self.error = networkError
@@ -46,20 +59,17 @@ class AuthService : ObservableObject {
     }
     
     func authorize(user: User) async -> Result<Bool, NetworkError> {
-        let auth = user.generateAuth()
+        let auth = user.generateSSBTokenAuth()
         
         do {
-            let loginResponse: LoginResponse = try await networkManager.fetch(from: AuthEndpoint(auth: auth))
-            guard loginResponse.status.login else {
-                self.error = .clientError(statusCode: 403)
-                return .failure(self.error!)
-            }
-            
+            let _: SSBUserResponse = try await networkManager.fetch(
+                from: GetUserEndpoint(userId: user.ssbId, auth: auth)
+            )
             return .success(true)
         } catch let networkError as NetworkError {
             self.error = networkError
             return .failure(self.error!)
-        } catch(let error) {
+        } catch {
             self.error = .unknownError(statusCode: 0, msg: error.localizedDescription)
             return .failure(self.error!)
         }

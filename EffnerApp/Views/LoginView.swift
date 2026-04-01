@@ -61,7 +61,7 @@ struct LoginView: View {
             }
             LoadingButton(action: {
                 print("Login tapped with Username: \(accountId), Password: \(password), Option: \(selectedOption)")
-                let user = await AuthService().login(username: accountId, password: password, klasses: [selectedOption])
+                let user = await AuthService().register(username: accountId, password: password, klasses: [selectedOption])
                 return user
             }, onResult: { result in
                 switch result {

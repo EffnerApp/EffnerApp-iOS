@@ -21,7 +21,7 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBBasicAuth()
+        UserSession.shared.user!.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

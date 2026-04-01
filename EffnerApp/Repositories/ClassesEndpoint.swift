@@ -10,7 +10,7 @@ import Foundation
 struct ClassesEndpoint : Endpoint {
     
     var baseURL: URL {
-        URL(string: Constants.baseURL)!
+        URL(string: Constants.ssbURL)!
     }
     
     var path: String {

@@ -1,24 +1,25 @@
 //
-//  SubstitutionsEndpoint.swift
+//  UpdateDeviceTokenEndpoint.swift
 //  EffnerApp
 //
-//  Created by Luis Bros on 08.11.25.
+//  Created by Luis Bros on 01.04.26.
 //
 
 import Foundation
 
-struct SubstitutionsEndpoint : Endpoint {
+struct UpdateDeviceTokenEndpoint: Endpoint {
+    let deviceToken: String?
     
     var baseURL: URL {
         URL(string: Constants.ssbURL)!
     }
     
     var path: String {
-        "/substitutions/class/" + (UserSession.shared.user!.primaryClass ?? "") + "/upcoming"
+        "/users/\(UserSession.shared.user!.ssbId)/device-token"
     }
     
     var method: HTTPMethod {
-        .get
+        .put
     }
     
     var authentication: Authentication? {
@@ -29,8 +30,12 @@ struct SubstitutionsEndpoint : Endpoint {
         nil
     }
     
-    var parameters: [String : Any]? {
+    var parameters: [String: Any]? {
         nil
+    }
+    
+    var body: Encodable? {
+        return ["deviceToken": deviceToken]
     }
     
 }

@@ -88,7 +88,7 @@ class NotificationService: ObservableObject {
     /// Deaktiviert Benachrichtigungen
     func disableNotifications() {
         Task {
-            await deleteUser()
+            await clearDeviceToken()
         }
         isEnabled = false
         UserDefaults.standard.set(false, forKey: "notificationsEnabled")
@@ -103,20 +103,28 @@ class NotificationService: ObservableObject {
         }
     }
     
-    
-    func createUser() async -> Result<SSBUserResponse, NetworkError> {
+    func clearDeviceToken() async -> Result<SSBUserResponse, NetworkError> {
         do {
-            guard deviceToken != nil else {
-                self.error = .clientError(statusCode: 400, msg: "Device token is nil.")
-                return .failure(self.error!)
-            }
-            let ssbUserRequest = SSBUserRequest(deviceToken: deviceToken!, classes: UserSession.shared.user?.klasses ?? [])
-            
-            let ssbUserResponse: SSBUserResponse = try await networkManager.fetch(from: CreateUserEndpoint(ssbUserRequest: ssbUserRequest))
-            
-            UserSession.shared.user?.saveSSBCredentials(id: ssbUserResponse.id, token: ssbUserResponse.token)
-            
-            return .success(ssbUserResponse)
+            let response: SSBUserResponse = try await networkManager.fetch(from: UpdateDeviceTokenEndpoint(deviceToken: nil))
+            return .success(response)
+        } catch let networkError as NetworkError {
+            self.error = networkError
+            return .failure(self.error!)
+        } catch(let error) {
+            self.error = .unknownError(statusCode: 0, msg: error.localizedDescription)
+            return .failure(self.error!)
+        }
+    }
+    
+    func updateDeviceToken() async -> Result<SSBUserResponse, NetworkError> {
+        guard let token = deviceToken else {
+            self.error = .clientError(statusCode: 400, msg: "Device token is nil.")
+            return .failure(self.error!)
+        }
+        
+        do {
+            let response: SSBUserResponse = try await networkManager.fetch(from: UpdateDeviceTokenEndpoint(deviceToken: token))
+            return .success(response)
         } catch let networkError as NetworkError {
             self.error = networkError
             return .failure(self.error!)

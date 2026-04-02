@@ -21,34 +21,43 @@ struct EffnerAppApp: App {
     @StateObject private var holidays = HolidaysCache.shared
     @StateObject private var notifications = NotificationService.shared
     
+    @State private var splashFinished = false
+    
     var body: some Scene {
         WindowGroup {
-            Group {
-                if let user = session.user, user.isAuthorized {
-                    // User hat eine Session und ist autorisiert → ContentView
-                    ContentView()
-                        .environmentObject(session)
-                        .environmentObject(classes)
-                        .environmentObject(exams)
-                        .environmentObject(substitutions)
-                        .environmentObject(timetables)
-                        .environmentObject(config)
-                        .environmentObject(documents)
-                        .environmentObject(holidays)
-                        .environmentObject(notifications)
-                } else {
-                    // Keine Session oder nicht autorisiert → LoginView
-                    LoginView()
-                        .environmentObject(session)
-                        .environmentObject(classes)
-                        .environmentObject(exams)
-                        .environmentObject(substitutions)
-                        .environmentObject(timetables)
-                        .environmentObject(config)
-                        .environmentObject(documents)
+            ZStack {
+                Group {
+                    if let user = session.user, user.isAuthorized {
+                        // User hat eine Session und ist autorisiert → ContentView
+                        ContentView()
+                            .environmentObject(session)
+                            .environmentObject(classes)
+                            .environmentObject(exams)
+                            .environmentObject(substitutions)
+                            .environmentObject(timetables)
+                            .environmentObject(config)
+                            .environmentObject(documents)
+                            .environmentObject(holidays)
+                            .environmentObject(notifications)
+                    } else {
+                        // Keine Session oder nicht autorisiert → LoginView
+                        LoginView()
+                            .environmentObject(session)
+                            .environmentObject(classes)
+                            .environmentObject(exams)
+                            .environmentObject(substitutions)
+                            .environmentObject(timetables)
+                            .environmentObject(config)
+                            .environmentObject(documents)
+                    }
+                }
+                .animation(.easeIn(duration: 0.3), value: session.user?.isAuthorized)
+
+                if !splashFinished {
+                    SplashScreenView(isFinished: $splashFinished)
+                        .ignoresSafeArea()
                 }
             }
-            .animation(.easeIn(duration: 0.3), value: session.user?.isAuthorized)
         }
     }
         

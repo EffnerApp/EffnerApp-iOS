@@ -18,6 +18,7 @@ struct LoginView: View {
     @State private var selectedOption: String = "null"
     @State private var pickerOptions = ["null"]
     
+    @AppStorage("hasSeenOnBoarding") private var hasSeenOnBoarding = false
     @State private var showingLegalInfo = false
     @State private var showingOnBoarding = false
     @FocusState private var focusedField: Field?
@@ -29,27 +30,23 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
         GeometryReader { geometry in
-            VStack(spacing: focusedField != nil ? 16 : 24) {
-                Spacer()
+            VStack(spacing: focusedField != nil ? 8 : 20) {
+                if focusedField == nil {
+                    Spacer()
+                }
                 Image("Logo")
                     .resizable()
                     .scaledToFit()
                     .frame(
-                        width: focusedField != nil ? 60 : 120,
-                        height: focusedField != nil ? 60 : 120
+                        width: focusedField != nil ? 48 : 120,
+                        height: focusedField != nil ? 48 : 120
                     )
-                    .animation(.easeInOut(duration: 0.3), value: focusedField)
+                    .padding(.top, focusedField != nil ? 8 : 0)
                 Text("EffnerApp")
-                    .font(.largeTitle)
+                    .font(focusedField != nil ? .title3 : .largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
-                if focusedField == nil {
-                    Text("Anmelden")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.center)
-                        .transition(.opacity)
-                }
+
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Account ID")
                         .font(.title3)
@@ -119,6 +116,7 @@ struct LoginView: View {
                 }, label: {
                     Text("Anmeldung")
                 })
+                    .padding(.top, 8)
                 Spacer()
                 Button(action: {
                     showingLegalInfo = true
@@ -131,20 +129,30 @@ struct LoginView: View {
             }
             .padding()
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .onSubmit {
-                focusedField = nil
-            }
-            .onTapGesture {
-                focusedField = nil
-            }
             .animation(.easeInOut(duration: 0.3), value: focusedField)
-            .sheet(isPresented: $showingLegalInfo) {
-                LegalInfoView()
-            }
-            .sheet(isPresented: $showingOnBoarding) {
-                OnBoardingView()
+        }
+        .ignoresSafeArea(.keyboard)
+        .onSubmit {
+            focusedField = nil
+        }
+        .onTapGesture {
+            focusedField = nil
+        }
+        .sheet(isPresented: $showingLegalInfo) {
+            LegalInfoView()
+        }
+        .sheet(isPresented: $showingOnBoarding, onDismiss: {
+            hasSeenOnBoarding = true
+        }) {
+            OnBoardingView()
+        }
+        .onAppear {
+            if !hasSeenOnBoarding {
+                showingOnBoarding = true
             }
         }
+        .navigationTitle("Anmelden")
+        .toolbarTitleDisplayMode(.inlineLarge)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {

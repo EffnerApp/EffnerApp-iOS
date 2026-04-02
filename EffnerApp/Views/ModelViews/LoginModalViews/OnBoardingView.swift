@@ -20,7 +20,7 @@ struct OnBoardingView: View {
     
     private let pages: [OnBoardingPage] = [
         OnBoardingPage(
-            title: "Willkommen bei Effner",
+            title: "Willkommen bei der neuen EffnerApp!",
             imageName: "graduationcap.fill",
             description: "Deine Schul-App für den Alltag am Josef-Effner-Gymnasium. Alles Wichtige auf einen Blick."
         ),
@@ -52,7 +52,7 @@ struct OnBoardingView: View {
                 VStack(spacing: 0) {
                     TabView(selection: $currentPage) {
                         ForEach(Array(pages.enumerated()), id: \.element.id) { index, page in
-                            VStack(spacing: 32) {
+                            VStack(spacing: 36) {
                                 Spacer()
                                 
                                 // Überschrift
@@ -96,22 +96,39 @@ struct OnBoardingView: View {
                             }
                         }
                         
-                        // Weiter / Fertig Button
-                        Button(action: {
-                            withAnimation {
-                                if currentPage < pages.count - 1 {
-                                    currentPage += 1
-                                } else {
-                                    dismiss()
+                        // Zurück & Weiter Buttons
+                        HStack(spacing: 12) {
+                            if currentPage > 0 {
+                                Button(action: {
+                                    withAnimation {
+                                        currentPage -= 1
+                                    }
+                                }) {
+                                    Image(systemName: "chevron.left")
+                                        .fontWeight(.semibold)
+                                        .padding(.vertical, 14)
+                                        .padding(.horizontal, 14)
                                 }
+                                .buttonStyle(.bordered)
+                                .tint(.secondary)
                             }
-                        }) {
-                            Text(currentPage == pages.count - 1 ? "Los geht's" : "Weiter")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+                            
+                            Button(action: {
+                                withAnimation {
+                                    if currentPage < pages.count - 1 {
+                                        currentPage += 1
+                                    } else {
+                                        dismiss()
+                                    }
+                                }
+                            }) {
+                                Text(currentPage == pages.count - 1 ? "Los geht's" : "Weiter")
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
-                        .buttonStyle(.borderedProminent)
                         .padding(.horizontal, 32)
                     }
                     .padding(.bottom, 40)

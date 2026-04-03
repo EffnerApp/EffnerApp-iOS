@@ -11,9 +11,6 @@ struct TimetableView: View {
     @ObservedObject var timetablesCache = TimetablesCache.shared
     
     @State private var subjectSelections: [String: String] = [:]
-    @State private var showingPicker = false
-    @State private var pickerSlotKey = ""
-    @State private var pickerSubjects: [Subject] = []
     
     init(isPreview: Bool = false) {
         if isPreview {
@@ -75,17 +72,38 @@ struct TimetableView: View {
                                             return subjects.first.flatMap { Color(hex: $0.color) } ?? .blue
                                         }()
                                         
-                                        LessonCell(
-                                            subject: displayText,
-                                            color: displayText.isEmpty ? .clear : color,
-                                            isSelectable: hasMultiple
-                                        )
-                                        .onTapGesture {
-                                            if hasMultiple {
-                                                pickerSlotKey = slotKey
-                                                pickerSubjects = subjects
-                                                showingPicker = true
+                                        if hasMultiple {
+                                            Menu {
+                                                ForEach(subjects, id: \.name) { subject in
+                                                    Button {
+                                                        selectSubject(subject.name, for: slotKey)
+                                                    } label: {
+                                                        Label(subject.name, systemImage: selectedName == subject.name ? "checkmark.circle.fill" : "circle")
+                                                    }
+                                                }
+                                                
+                                                if subjectSelections[slotKey] != nil {
+                                                    Divider()
+                                                    
+                                                    Button(role: .destructive) {
+                                                        clearSelection(for: slotKey)
+                                                    } label: {
+                                                        Label("Alle anzeigen", systemImage: "arrow.uturn.backward")
+                                                    }
+                                                }
+                                            } label: {
+                                                LessonCell(
+                                                    subject: displayText,
+                                                    color: color,
+                                                    isSelectable: true
+                                                )
                                             }
+                                        } else {
+                                            LessonCell(
+                                                subject: displayText,
+                                                color: displayText.isEmpty ? .clear : color,
+                                                isSelectable: false
+                                            )
                                         }
                                     }
                                 }
@@ -112,19 +130,6 @@ struct TimetableView: View {
         }
         .onChange(of: timetablesCache.cachedResponse?.className) {
             loadSelections()
-        }
-        .confirmationDialog("Fach auswählen", isPresented: $showingPicker, titleVisibility: .visible) {
-            ForEach(pickerSubjects, id: \.name) { subject in
-                Button(subject.name) {
-                    selectSubject(subject.name, for: pickerSlotKey)
-                }
-            }
-            if subjectSelections[pickerSlotKey] != nil {
-                Button("Alle anzeigen", role: .destructive) {
-                    clearSelection(for: pickerSlotKey)
-                }
-            }
-            Button("Abbrechen", role: .cancel) {}
         }
     }
     

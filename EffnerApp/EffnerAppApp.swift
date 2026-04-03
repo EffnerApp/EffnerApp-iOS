@@ -16,8 +16,6 @@ struct EffnerAppApp: App {
     @StateObject private var exams = ExamsCache.shared
     @StateObject private var substitutions = SubstitutionsCache.shared
     @StateObject private var timetables = TimetablesCache.shared
-    @StateObject private var config = ConfigCache.shared
-    @StateObject private var documents = DocumentsCache.shared
     @StateObject private var holidays = HolidaysCache.shared
     @StateObject private var notifications = NotificationService.shared
     
@@ -35,8 +33,6 @@ struct EffnerAppApp: App {
                             .environmentObject(exams)
                             .environmentObject(substitutions)
                             .environmentObject(timetables)
-                            .environmentObject(config)
-                            .environmentObject(documents)
                             .environmentObject(holidays)
                             .environmentObject(notifications)
                     } else {
@@ -47,8 +43,6 @@ struct EffnerAppApp: App {
                             .environmentObject(exams)
                             .environmentObject(substitutions)
                             .environmentObject(timetables)
-                            .environmentObject(config)
-                            .environmentObject(documents)
                     }
                 }
                 .animation(.easeIn(duration: 0.3), value: session.user?.isAuthorized)

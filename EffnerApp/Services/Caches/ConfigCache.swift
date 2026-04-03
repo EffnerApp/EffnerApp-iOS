@@ -7,8 +7,10 @@
 
 import Foundation
 import Combine
+import OSLog
 
 class ConfigCache: BaseCache<String> {
+    private static let logger = Log.config
     static let shared = ConfigCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -42,7 +44,7 @@ class ConfigCache: BaseCache<String> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveConfig("yee")
-            print("Config cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -52,10 +54,10 @@ class ConfigCache: BaseCache<String> {
         switch result {
         case .success(let response):
             saveConfig(response)
-            print("Config cache refreshed successfully.")
+            Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
             await setError()
-            print("Failed to refresh Config cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

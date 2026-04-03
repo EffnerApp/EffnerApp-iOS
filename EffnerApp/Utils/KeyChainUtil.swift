@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 struct KeyChainItem: Codable {
     let key: String
@@ -13,6 +14,7 @@ struct KeyChainItem: Codable {
 }
 
 struct KeyChainUtil {
+    private static let logger = Log.keychain
     
     public static func loadFromKeyChain(serviceName: String) -> KeyChainItem? {
         let query: [String: Any] = [
@@ -29,7 +31,7 @@ struct KeyChainUtil {
               let account = existingItem[kSecAttrAccount as String] as? String,
               let passwordData = existingItem[kSecValueData as String] as? Data,
               let password = String(data: passwordData, encoding: .utf8) else {
-            print("No credentials found in keychain for service \(serviceName)")
+            logger.info("No credentials found in keychain for service \(serviceName)")
             return nil
         }
         
@@ -50,10 +52,10 @@ struct KeyChainUtil {
         
         let status = SecItemAdd(query as CFDictionary, nil)
         if status != errSecSuccess {
-            print("Error saving credentials for service \(serviceName): \(status)")
+            logger.error("Error saving credentials for service \(serviceName): \(status)")
             return false
         } else {
-            print("Credentials saved successfully for service \(serviceName)")
+            logger.info("Credentials saved successfully for service \(serviceName)")
             return true
         }
     }

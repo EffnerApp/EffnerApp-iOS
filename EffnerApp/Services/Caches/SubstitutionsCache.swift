@@ -7,8 +7,10 @@
 
 import Foundation
 import Combine
+import OSLog
 
 class SubstitutionsCache: BaseCache<SubstitutionResponse> {
+    private static let logger = Log.substitutions
     static let shared = SubstitutionsCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -30,7 +32,7 @@ class SubstitutionsCache: BaseCache<SubstitutionResponse> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveSubstitutions(MockSubstitution.mockSubstitutionPlans)
-            print("Substitutions cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -41,14 +43,14 @@ class SubstitutionsCache: BaseCache<SubstitutionResponse> {
         case .success(let response):
             if response.plans.isEmpty == false, let _ = response.plans.first {
                 saveSubstitutions(response)
-                print("Substitutions cache refreshed successfully with \(response.plans.count) plan(s).")
+                Self.logger.info("Cache refreshed successfully with \(response.plans.count) plan(s).")
             } else {
-                print("No substitution plans available.")
+                Self.logger.warning("No substitution plans available.")
                 await setError()
             }
         case .failure(let error):
             await setError()
-            print("Failed to refresh substitutions cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

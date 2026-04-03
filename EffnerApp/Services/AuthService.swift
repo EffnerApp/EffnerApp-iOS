@@ -5,8 +5,10 @@
 //  Created by Luis Bros on 21.07.25.
 //
 import Foundation
+import OSLog
 
 class AuthService : ObservableObject {
+    private static let logger = Log.auth
     @Published var error: NetworkError?
     
     private let networkManager : NetworkManager
@@ -47,7 +49,7 @@ class AuthService : ObservableObject {
             user.saveKlasses()
             user.saveSSBCredentials()
             
-            print("SSB user created successfully: \(ssbUserResponse.id)")
+            Self.logger.info("SSB user created successfully: \(ssbUserResponse.id)")
             return .success(user)
         } catch let networkError as NetworkError {
             self.error = networkError

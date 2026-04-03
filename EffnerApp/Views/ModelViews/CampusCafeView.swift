@@ -7,8 +7,10 @@
 
 import SwiftUI
 import PDFKit
+import OSLog
 
 struct CampusCafeView: View {
+    private static let logger = Log.campusCafe
     @State private var pdfDocument: PDFDocument?
     @State private var isLoading = false
     @State private var loadError: Error?
@@ -65,20 +67,20 @@ struct CampusCafeView: View {
                 isLoading = false
                 
                 if let error = error {
-                    print("PDF Load Error: \(error.localizedDescription)")
+                    Self.logger.error("PDF load error: \(error.localizedDescription)")
                     loadError = error
                     return
                 }
                 
                 guard let data = data else {
-                    print("PDF Load Error: No data received")
+                    Self.logger.error("PDF load error: No data received")
                     return
                 }
                 
                 if let document = PDFDocument(data: data) {
                     pdfDocument = document
                 } else {
-                    print("PDF Load Error: Could not create PDFDocument from data")
+                    Self.logger.error("PDF load error: Could not create PDFDocument from data")
                 }
             }
         }.resume()

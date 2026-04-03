@@ -8,9 +8,11 @@
 import Foundation
 import UserNotifications
 import UIKit
+import OSLog
 
 @MainActor
 class NotificationService: ObservableObject {
+    private static let logger = Log.notifications
     static let shared = NotificationService()
     
     @Published var error: NetworkError?
@@ -22,7 +24,7 @@ class NotificationService: ObservableObject {
     
     private init(networkManager: NetworkManager = NetworkManager.shared) {
         self.networkManager = networkManager
-        print("NotificationService initialized")
+        Self.logger.info("Initialized.")
         Task {
             await checkAuthorizationStatus()
         }
@@ -60,7 +62,7 @@ class NotificationService: ObservableObject {
                 return false
             }
         } catch {
-            print("Permission Error: \(error.localizedDescription)")
+            Self.logger.error("Permission error: \(error.localizedDescription)")
             await checkAuthorizationStatus()
             return false
         }

@@ -7,9 +7,11 @@
 import SwiftUI
 import Observation
 import Security
+import OSLog
 
 @Observable
 class UserSession: ObservableObject {
+    private static let logger = Log.auth
     static let shared = UserSession()
     
     //var user: User? = nil {
@@ -26,7 +28,7 @@ class UserSession: ObservableObject {
         user = loadUserFromStorage();
         
         guard let user else {
-            print("No user found in storage.")
+            Self.logger.info("No user found in storage.")
             isCheckingAuthorization = false
             return
         }
@@ -36,11 +38,11 @@ class UserSession: ObservableObject {
             switch isAuthorized {
             case .success(let authorized):
                 if authorized {
-                    print("User is authorized.")
+                    Self.logger.info("User is authorized.")
                     self.user?.isAuthorized = true
                 }
             case .failure(let error):
-                print("Authorization failed with error: \(error)")
+                Self.logger.error("Authorization failed with error: \(error)")
                 self.user = nil
             }
             self.isCheckingAuthorization = false
@@ -99,7 +101,7 @@ class UserSession: ObservableObject {
         // UserDefaults for userKlasses
         let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")
         guard let klasses = klasses else {
-            print("No Klasses found in UserDefaults.")
+            Self.logger.info("No Klasses found in UserDefaults.")
             return nil
         }
         
@@ -118,7 +120,7 @@ class UserSession: ObservableObject {
         user?.clearCredentials()
         user?.clearSSBCredentials()
         user = nil
-        print("User logged out and credentials cleared.")
+        Self.logger.info("User logged out and credentials cleared.")
         
         // notify caches
         objectWillChange.send()

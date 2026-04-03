@@ -6,9 +6,11 @@
 //
 import Foundation
 import Combine
+import OSLog
 
 
 class ClassesCache: BaseCache<[String]> {
+    private static let logger = Log.classes
     static let shared = ClassesCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -43,10 +45,10 @@ class ClassesCache: BaseCache<[String]> {
         switch result {
         case .success(let response):
             saveClasses(response)
-            print("Classes cache refreshed successfully.")
+            Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
             await setError()
-            print("Failed to refresh Classes cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

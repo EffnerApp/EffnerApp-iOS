@@ -6,8 +6,10 @@
 //
 import Foundation
 import Combine
+import OSLog
 
 class HolidaysCache: BaseCache<[Holiday]> {
+    private static let logger = Log.holidays
     static let shared = HolidaysCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -41,7 +43,7 @@ class HolidaysCache: BaseCache<[Holiday]> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveHolidays(MockHolidays.mockHolidays)
-            print("Holidays cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -51,10 +53,10 @@ class HolidaysCache: BaseCache<[Holiday]> {
         switch result {
         case .success(let holidays):
             saveHolidays(holidays)
-            print("Holidays cache refreshed successfully.")
+            Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
             await setError()
-            print("Failed to refresh Holidays cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

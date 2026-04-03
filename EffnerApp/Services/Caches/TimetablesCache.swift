@@ -7,8 +7,10 @@
 
 import Foundation
 import Combine
+import OSLog
 
 class TimetablesCache: BaseCache<TimetableResponse> {
+    private static let logger = Log.timetable
     static let shared = TimetablesCache()
     
     // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
@@ -37,7 +39,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveTimetables(MockTimetable.mockTimetable)
-            print("Timetable cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -47,10 +49,10 @@ class TimetablesCache: BaseCache<TimetableResponse> {
         switch result {
         case .success(let response):
             saveTimetables(response)
-            print("Timetable cache refreshed successfully.")
+            Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
             await setError()
-            print("Failed to refresh Timetable cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

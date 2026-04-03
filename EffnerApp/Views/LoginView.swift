@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct LoginView: View {
+    private static let logger = Log.auth
     @EnvironmentObject private var classes: ClassesCache
     
     @State private var loginFailed = false
@@ -99,13 +101,13 @@ struct LoginView: View {
                         .transition(.opacity)
                 }
                 LoadingButton(action: {
-                    print("Login tapped with Username: \(accountId), Password: \(password), Option: \(selectedOption)")
+                    Self.logger.debug("Login tapped with username: \(accountId, privacy: .private), option: \(selectedOption)")
                     let user = await AuthService().register(username: accountId, password: password, klasses: [selectedOption])
                     return user
                 }, onResult: { result in
                     switch result {
                         case .success(let user):
-                            print("Login successful for user: \(user.username)")
+                            Self.logger.info("Login successful for user: \(user.username, privacy: .private)")
                             // User is getting rerouted to the main content view automatically by the App struct
                         case .failure(let error):
                             withAnimation {

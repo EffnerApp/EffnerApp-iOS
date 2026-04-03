@@ -6,8 +6,10 @@
 //
 import Foundation
 import Combine
+import OSLog
 
 class DocumentsCache: BaseCache<DocumentsResponse> {
+    private static let logger = Log.documents
     static let shared = DocumentsCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -41,7 +43,7 @@ class DocumentsCache: BaseCache<DocumentsResponse> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveDocuments(DocumentsMock.mockDocuments())
-            print("Documents cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -51,10 +53,10 @@ class DocumentsCache: BaseCache<DocumentsResponse> {
         switch result {
         case .success(let response):
             saveDocuments(response)
-            print("Documents cache refreshed successfully.")
+            Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
             await setError()
-            print("Failed to refresh Documents cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

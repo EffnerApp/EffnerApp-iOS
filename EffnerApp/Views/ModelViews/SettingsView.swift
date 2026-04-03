@@ -6,8 +6,10 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct SettingsView: View {
+    private static let logger = Log.settings
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var session: UserSession
     @EnvironmentObject var classesCache: ClassesCache
@@ -169,7 +171,7 @@ struct SettingsView: View {
             
             if success {
                 // Benachrichtigungen erfolgreich aktiviert
-                print("Enabled Notifications from SettingsView")
+                Self.logger.info("Notifications enabled.")
             }
             
             if !success && notificationService.authorizationStatus == .denied {
@@ -184,7 +186,7 @@ struct SettingsView: View {
         do {
             try await Task.sleep(for: .seconds(5))
         } catch {
-            print("Sleep interrupted: \(error)")
+            Self.logger.debug("Sleep interrupted: \(error)")
         }
             
         

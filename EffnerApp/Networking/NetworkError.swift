@@ -5,6 +5,7 @@
 //  Created by Luis Bros on 21.07.25.
 //
 import Foundation
+import OSLog
 
 enum NetworkError: Error {
     case invalidResponse(req: URLRequest? = nil, msg: String = "None")
@@ -15,13 +16,14 @@ enum NetworkError: Error {
 }
 
 extension NetworkError: LocalizedError {
+    private static let logger = Log.networking
     var request: URLRequest? {
         Mirror(reflecting: self).children.first?.value as? URLRequest
     }
     var errorDescription: String? {
         let source = Thread.callStackSymbols.first ?? "Unknown Source"
         let req = request?.debugDescription ?? "Unknown Request"
-        print("NetworkError: \(self) | Request: \(req) | Source: \(source)")
+        Self.logger.error("NetworkError: \(String(describing: self)) | Request: \(req) | Source: \(source)")
         switch self {
             case .invalidResponse(_, let message):
                 return "Invalid response received from the server. Message: \(message)"

@@ -6,8 +6,10 @@
 //
 import Foundation
 import Combine
+import OSLog
 
 class ExamsCache: BaseCache<ExamsResponse> {
+    private static let logger = Log.exams
     static let shared = ExamsCache()
     
     // Convenience accessor für bessere Lesbarkeit
@@ -35,7 +37,7 @@ class ExamsCache: BaseCache<ExamsResponse> {
         // Mock-Daten für Test-User
         if shouldUseMockData() {
             saveExams(MockExam.mockExams)
-            print("Exams cache refreshed with mock data.")
+            Self.logger.debug("Cache refreshed with mock data.")
             return
         }
         
@@ -46,14 +48,14 @@ class ExamsCache: BaseCache<ExamsResponse> {
         case .success(let response):
             if !response.exams.isEmpty {
                 saveExams(response)
-                print("Exams cache refreshed successfully.")
+                Self.logger.info("Cache refreshed successfully.")
             } else {
-                print("No exams available.")
+                Self.logger.warning("No exams available.")
                 await setError()
             }
         case .failure(let error):
             await setError()
-            print("Failed to refresh exams cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }
 }

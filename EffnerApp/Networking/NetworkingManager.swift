@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import OSLog
 
 protocol NetworkManaging {
     func fetch<T: Decodable>(from endpoint: Endpoint) async throws -> T
 }
 
 final class NetworkManager: NetworkManaging {
+    private static let logger = Log.networking
     static let shared = NetworkManager()
     private let session: URLSession
     
@@ -30,12 +32,12 @@ final class NetworkManager: NetworkManaging {
         try validateResponse(request, httpResponse)
         
         do {
-            print("NetworkResponse: " + (String(data: data, encoding: .utf8) ?? "<non-UTF8 data>"))
+            Self.logger.debug("Response: \(String(data: data, encoding: .utf8) ?? "<non-UTF8 data>", privacy: .private)")
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             return try decoder.decode(T.self, from: data)
         } catch {
-            print("Decoding error: \(error)")
+            Self.logger.error("Decoding error: \(error)")
             throw NetworkError.decodingFailed(req: request)
         }
     }

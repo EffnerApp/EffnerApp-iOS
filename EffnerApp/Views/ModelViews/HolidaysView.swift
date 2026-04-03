@@ -28,10 +28,10 @@ struct HolidaysView: View {
             scrollToId: { _ in "futureHolidays" },
             isModal: true,
             content: { cache in
-                if let holidayResponse = holidaysCache.cachedHolidaysResponse {
+                if let holidays = holidaysCache.cachedHolidays {
                     List {
                         Section(header: HolidaySeparatorView()) {
-                            ForEach(holidayResponse.data.filter { isPastHoliday($0) }, id: \.id) { holiday in
+                            ForEach(holidays.filter { isPastHoliday($0) }) { holiday in
                                 HolidayRowView(holiday: holiday)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
@@ -39,7 +39,7 @@ struct HolidaysView: View {
                         .id("pastHolidays")
                         
                         Section(header: HolidaySeparatorView(isPast: false)) {
-                            ForEach(holidayResponse.data.filter { !isPastHoliday($0) }, id: \.id) { holiday in
+                            ForEach(holidays.filter { !isPastHoliday($0) }) { holiday in
                                 HolidayRowView(holiday: holiday)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
@@ -87,18 +87,11 @@ struct HolidayRowView: View {
                     .font(.title2)
                     .padding(.leading, 12)
 
-                HStack {
-                    if (holiday.startsOn != holiday.endsOn) {
-                        Text("bis \(formatDateShort(holiday.endsOn))")
-                            .font(.subheadline)
-                    }
-                        
-                    if holiday.isPublicHoliday {
-                        Text("Feiertag")
-                            .font(.subheadline)
-                            .foregroundColor(.orange)
-                    }
-                }.padding(.leading, 12)
+                if holiday.startsOn != holiday.endsOn {
+                    Text("bis \(formatDateShort(holiday.endsOn))")
+                        .font(.subheadline)
+                        .padding(.leading, 12)
+                }
             }
         }
         .padding(.vertical, 0)

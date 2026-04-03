@@ -31,7 +31,7 @@ struct TimelineBarComponent: View {
             iconColor: .blue,
             removePadding: true
         ) {
-            if let timetable = timetable {
+            if timetable != nil {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 3) {
                         ForEach(Array(todaySlots.enumerated()), id: \.offset) { index, slotInfo in

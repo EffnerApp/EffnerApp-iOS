@@ -16,20 +16,19 @@ class HolidaysService : ObservableObject {
         self.networkManager = networkManager
     }
     
-    func fetchHolidays() async -> Result<HolidayResponse, NetworkError> {
+    func fetchHolidays() async -> Result<[Holiday], NetworkError> {
         do {
-            let holidaysResponse: HolidayResponse = try await networkManager.fetch(from: HolidaysEndpoint())
+            let holidays: [Holiday] = try await networkManager.fetch(from: HolidaysEndpoint())
             
-            guard !holidaysResponse.data.isEmpty else {
+            guard !holidays.isEmpty else {
                 self.error = .serverError(statusCode: 500, msg: "No holiday objects available.")
                 return .failure(self.error!)
             }
             
             // Sortiere die Holidays nach starts_on
-            let sortedHolidays = holidaysResponse.data.sorted { $0.startsOn < $1.startsOn }
-            let sortedResponse = HolidayResponse(data: sortedHolidays, meta: holidaysResponse.meta)
+            let sortedHolidays = holidays.sorted { $0.startsOn < $1.startsOn }
             
-            return .success(sortedResponse)
+            return .success(sortedHolidays)
         } catch let networkError as NetworkError {
             self.error = networkError
             return .failure(self.error!)

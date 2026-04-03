@@ -185,17 +185,17 @@ struct BentoGridLayout: View {
     
     // MARK: - Helper Functions
     private func getNextHoliday() -> Holiday? {
-        guard let holidays = HolidaysCache.shared.cachedResponse?.data else { return nil }
+        guard let holidays = HolidaysCache.shared.cachedHolidays else { return nil }
         
         let now = Date()
         let isoFormatter = ISO8601DateFormatter()
         let germanFormatter = DateFormatter()
         germanFormatter.dateFormat = "yyyy-MM-dd"
         
-        // Filtere und sortiere zukünftige Ferien
+        // Filtere und sortiere aktuelle/zukünftige Ferien (endsOn entscheidend)
         let futureHolidays = holidays.filter { holiday in
-            if let startDate = isoFormatter.date(from: holiday.startsOn) ?? germanFormatter.date(from: holiday.startsOn) {
-                return startDate >= now
+            if let endDate = isoFormatter.date(from: holiday.endsOn) ?? germanFormatter.date(from: holiday.endsOn) {
+                return endDate >= now
             }
             return false
         }.sorted { holiday1, holiday2 in
@@ -219,6 +219,10 @@ struct BentoGridLayout: View {
         guard let startDate = isoFormatter.date(from: start) ?? germanFormatter.date(from: start),
               let endDate = isoFormatter.date(from: end) ?? germanFormatter.date(from: end) else {
             return ""
+        }
+        
+        if Calendar.current.isDate(startDate, inSameDayAs: endDate) {
+            return displayFormatter.string(from: startDate)
         }
         
         return "\(displayFormatter.string(from: startDate)) - \(displayFormatter.string(from: endDate))"

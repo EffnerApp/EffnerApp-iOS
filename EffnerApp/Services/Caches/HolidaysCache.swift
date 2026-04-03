@@ -7,11 +7,11 @@
 import Foundation
 import Combine
 
-class HolidaysCache: BaseCache<HolidayResponse> {
+class HolidaysCache: BaseCache<[Holiday]> {
     static let shared = HolidaysCache()
     
     // Convenience accessor für bessere Lesbarkeit
-    var cachedHolidaysResponse: HolidayResponse? {
+    var cachedHolidays: [Holiday]? {
         cachedResponse
     }
     
@@ -21,14 +21,14 @@ class HolidaysCache: BaseCache<HolidayResponse> {
             return true
         }
         // Auch Error wenn Daten leer sind
-        if case .loaded(let response) = loadState, response.data.isEmpty {
+        if case .loaded(let holidays) = loadState, holidays.isEmpty {
             return true
         }
         return false
     }
     
     // Convenience-Methode für bessere API
-    public func saveHolidays(_ holidays: HolidayResponse) {
+    public func saveHolidays(_ holidays: [Holiday]) {
         saveResponse(holidays)
     }
     
@@ -49,8 +49,8 @@ class HolidaysCache: BaseCache<HolidayResponse> {
         let result = await holidaysService.fetchHolidays()
         
         switch result {
-        case .success(let response):
-            saveHolidays(response)
+        case .success(let holidays):
+            saveHolidays(holidays)
             print("Holidays cache refreshed successfully.")
         case .failure(let error):
             await setError()

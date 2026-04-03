@@ -9,11 +9,11 @@ import Foundation
 struct HolidaysEndpoint : Endpoint {
     
     var baseURL: URL {
-        URL(string: "https://www.mehr-schulferien.de")!
+        URL(string: Constants.ssbURL)!
     }
     
     var path: String {
-        "/api/v2.1/federal-states/bayern/periods"
+        "/schoolholidays"
     }
     
     var method: HTTPMethod {
@@ -21,7 +21,7 @@ struct HolidaysEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        nil
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {
@@ -29,11 +29,7 @@ struct HolidaysEndpoint : Endpoint {
     }
     
     var parameters: [String : Any]? {
-        [
-            "start_date": "2025-10-01", //TODO: Set dynamic date
-            "end_date": "2026-10-01",
-            //"type": "vacation"
-        ]
+        nil
     }
     
 }

@@ -56,6 +56,9 @@ struct HomeView: View {
             .sheet(isPresented: $showCampusCafeView) {
                 CampusCafeView()
             }
+            .onReceive(timer) { date in
+                currentTime = date
+            }
     }
     
     // MARK: - Computed Properties

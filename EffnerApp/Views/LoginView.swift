@@ -23,6 +23,7 @@ struct LoginView: View {
     @AppStorage("hasSeenOnBoarding") private var hasSeenOnBoarding = false
     @State private var showingLegalInfo = false
     @State private var showingOnBoarding = false
+    @State private var showingLoginPopover = false
     @FocusState private var focusedField: Field?
     
     private enum Field {
@@ -66,17 +67,32 @@ struct LoginView: View {
                         .onChange(of: accountId) { loginFailed = false }
                     Text("Passwort")
                         .font(.title3)
-                    SecureField("Passwort", text: $password)
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(loginFailed ? Color.red : Color.clear, lineWidth: 2)
-                        )
-                        .submitLabel(.done)
-                        .focused($focusedField, equals: .password)
-                        .onChange(of: password) { loginFailed = false }
+                    HStack {
+                        SecureField("Passwort", text: $password)
+                            .padding(10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(loginFailed ? Color.red : Color.clear, lineWidth: 2)
+                            )
+                            .submitLabel(.done)
+                            .focused($focusedField, equals: .password)
+                            .onChange(of: password) { loginFailed = false }
+
+                        Image(systemName: "questionmark.circle")
+                            .onTapGesture {
+                                showingLoginPopover.toggle()
+                            }
+                            .popover(isPresented: $showingLoginPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
+                                Text("Nutze hier die Daten aus dem Elternbrief oder frage Mitschüler:innen.")
+                                    .font(.subheadline)
+                                    .multilineTextAlignment(.leading)
+                                    .padding(12)
+                                    .frame(maxWidth: 300, alignment: .leading)
+                                    .presentationCompactAdaptation(.popover)
+                            }
+                    }
                     Text("Klasse")
                         .font(.title3)
                     HStack {

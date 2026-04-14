@@ -1,0 +1,22 @@
+[
+  {
+    "image_name": "Jetzt.png",
+    "headline": "Alles in einer App",
+    "subheadline": "Vertretungen, Klausuren, Stundenplan und vieles mehr!"
+  },
+  {
+    "image_name": "Klausuren.png",
+    "headline": "Sehe deine nächsten Klausuren",
+    "subheadline": ""
+  },
+  {
+    "image_name": "Timetable.png",
+    "headline": "Habe immer den Stundenplan bereit",
+    "subheadline": ""
+  },
+  {
+    "image_name": "Vertretungen.png",
+    "headline": "Tagesaktuelle Vertretungen",
+    "subheadline": "Auch für mehre Klassen schnell einsehbar!"
+  }
+]

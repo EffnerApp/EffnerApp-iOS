@@ -12,6 +12,8 @@ struct TimelineBarComponent: View {
     @ObservedObject var timetableCache = TimetablesCache.shared
     let substitutions: [Substitution]?
     let currentTime: Date
+    private let cardWidth: CGFloat = 100
+    private let cardSpacing: CGFloat = 3
     
     @State private var selectedDay: Int = Calendar.current.component(.weekday, from: Date())
     
@@ -33,16 +35,25 @@ struct TimelineBarComponent: View {
         ) {
             if timetable != nil {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: cardSpacing) {
                         ForEach(Array(todaySlots.enumerated()), id: \.offset) { index, slotInfo in
                             TimelineSubjectCard(
                                 subject: slotInfo.displayText,
                                 period: index + 1,
                                 color: slotInfo.color,
                                 hasSubstitution: hasSubstitutionForPeriod(index + 1),
-                                timeRange: slotInfo.timeRange,
-                                isCurrent: isCurrentLesson(slot: slotInfo.slot)
+                                timeRange: slotInfo.timeRange
                             )
+                        }
+                    }
+                    .overlay(alignment: .topLeading) {
+                        GeometryReader { geometry in
+                            if let indicatorX = timelineIndicatorX {
+                                Rectangle()
+                                    .fill(.red)
+                                    .frame(width: 1, height: geometry.size.height)
+                                    .position(x: indicatorX, y: geometry.size.height / 2)
+                            }
                         }
                     }
                 }
@@ -158,20 +169,60 @@ struct TimelineBarComponent: View {
         return substitutions.contains { $0.period == "\(period)" }
     }
     
-    private func isCurrentLesson(slot: TimetableSlot) -> Bool {
-        guard let start = slot.startComponents,
-              let end = slot.endComponents else { return false }
-        
+    private var timelineIndicatorX: CGFloat? {
+        guard !todaySlots.isEmpty else { return nil }
+
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: currentTime)
         let minute = calendar.component(.minute, from: currentTime)
-        
-        let currentMinutes = hour * 60 + minute
-        let startMinutes = start.hour * 60 + start.minute
-        let endMinutes = end.hour * 60 + end.minute
-        
-        return currentMinutes >= startMinutes && currentMinutes <= endMinutes
+        let second = calendar.component(.second, from: currentTime)
+
+        let currentMinutes = Double(hour * 60 + minute) + (Double(second) / 60.0)
+
+        let minuteRanges: [(start: Double, end: Double)] = todaySlots.compactMap { slotInfo in
+            guard let start = slotInfo.slot.startComponents,
+                  let end = slotInfo.slot.endComponents else { return nil }
+            return (start: Double(start.hour * 60 + start.minute), end: Double(end.hour * 60 + end.minute))
+        }
+
+        guard minuteRanges.count == todaySlots.count else { return nil }
+
+        // In einer Stunde: Position innerhalb der Karte berechnen.
+        for (index, range) in minuteRanges.enumerated() {
+            let duration = range.end - range.start
+            guard duration > 0 else { continue }
+
+            if currentMinutes >= range.start && currentMinutes <= range.end {
+                let progress = (currentMinutes - range.start) / duration
+                let x = CGFloat(index) * (cardWidth + cardSpacing) + CGFloat(progress) * cardWidth
+                return min(max(x, 0), totalTimelineWidth)
+            }
+        }
+
+        // Zwischen zwei Stunden: Position im Abstand zwischen den Karten.
+        for index in 0..<(minuteRanges.count - 1) {
+            let currentEnd = minuteRanges[index].end
+            let nextStart = minuteRanges[index + 1].start
+            let gap = nextStart - currentEnd
+
+            guard gap > 0 else { continue }
+            if currentMinutes > currentEnd && currentMinutes < nextStart {
+                let gapProgress = (currentMinutes - currentEnd) / gap
+                let x = CGFloat(index) * (cardWidth + cardSpacing) + cardWidth + CGFloat(gapProgress) * cardSpacing
+                return min(max(x, 0), totalTimelineWidth)
+            }
+        }
+
+        // Außerhalb der sichtbaren Timeline (vor erster/nach letzter Stunde): kein Zeiger.
+        return nil
     }
+
+    private var totalTimelineWidth: CGFloat {
+        let count = CGFloat(todaySlots.count)
+        guard count > 0 else { return 0 }
+        return count * cardWidth + (count - 1) * cardSpacing
+    }
+
 }
 
 // MARK: - Timeline Subject Card
@@ -181,7 +232,6 @@ struct TimelineSubjectCard: View {
     let color: Color
     let hasSubstitution: Bool
     let timeRange: String
-    let isCurrent: Bool
     
     var body: some View {
         VStack(spacing: 8) {
@@ -217,17 +267,5 @@ struct TimelineSubjectCard: View {
         .frame(width: 100)
         .padding(.horizontal, 0)
         .padding(.vertical, 10)
-        .overlay(
-            // Vertikale rote Linie für aktuelle Stunde
-            GeometryReader { geometry in
-                if isCurrent {
-                    Rectangle()
-                        .fill(.red)
-                        .frame(width: 1)
-                        .frame(height: geometry.size.height)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                }
-            }
-        )
     }
 }

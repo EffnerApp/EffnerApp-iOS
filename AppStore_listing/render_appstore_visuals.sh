@@ -24,8 +24,14 @@ BASE_DIR = Path(".")
 CONFIG_PATH = BASE_DIR / "screenshots.json"
 OUTPUT_DIR = BASE_DIR / "styled"
 OUTPUT_DIR.mkdir(exist_ok=True)
+OUTPUT_IPAD_DIR = BASE_DIR / "styled_ipad"
+OUTPUT_IPAD_DIR.mkdir(exist_ok=True)
+OUTPUT_MAC_DIR = BASE_DIR / "styled_mac"
+OUTPUT_MAC_DIR.mkdir(exist_ok=True)
 
 CANVAS_W, CANVAS_H = 1290, 2796
+IPAD_W, IPAD_H = 2752, 2064
+MAC_W, MAC_H = 1280, 800
 TEXT_MARGIN_X = 94
 HEADLINE_TOP = 150
 SUBHEADLINE_GAP = 30
@@ -263,6 +269,23 @@ def build_frame(item: dict, gradient: tuple[tuple[int, int, int], ...]) -> Image
     return background.convert("RGB")
 
 
+def build_device_frame(
+    phone_frame: Image.Image,
+    gradient: tuple[tuple[int, int, int], ...],
+    target_size: tuple[int, int],
+) -> Image.Image:
+    target_w, target_h = target_size
+    device_background = build_gradient((target_w, target_h), gradient).convert("RGB")
+    scale = min(target_w / CANVAS_W, target_h / CANVAS_H)
+    target_w = max(1, int(CANVAS_W * scale))
+    target_h = max(1, int(CANVAS_H * scale))
+    fitted = phone_frame.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    x = (target_size[0] - target_w) // 2
+    y = (target_size[1] - target_h) // 2
+    device_background.paste(fitted, (x, y))
+    return device_background
+
+
 def main() -> None:
     items = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     if not isinstance(items, list):
@@ -279,6 +302,22 @@ def main() -> None:
         output_path = OUTPUT_DIR / output_name
         frame.save(output_path, format="PNG", optimize=True)
         print(f"Erstellt: {output_path}")
+
+        ipad_output_path = OUTPUT_IPAD_DIR / output_name
+        build_device_frame(frame, GRADIENTS[idx % len(GRADIENTS)], (IPAD_W, IPAD_H)).save(
+            ipad_output_path,
+            format="PNG",
+            optimize=True,
+        )
+        print(f"Erstellt: {ipad_output_path}")
+
+        mac_output_path = OUTPUT_MAC_DIR / output_name
+        build_device_frame(frame, GRADIENTS[idx % len(GRADIENTS)], (MAC_W, MAC_H)).save(
+            mac_output_path,
+            format="PNG",
+            optimize=True,
+        )
+        print(f"Erstellt: {mac_output_path}")
 
 
 if __name__ == "__main__":

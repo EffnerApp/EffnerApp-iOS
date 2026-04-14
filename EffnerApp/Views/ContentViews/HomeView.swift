@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject var substitutionsCache = SubstitutionsCache.shared
     @ObservedObject var holidaysCache = HolidaysCache.shared
+    @AppStorage("hasSeenHomeNotificationOnboarding") private var hasSeenHomeNotificationPrompt = false
     
     init(isPreview: Bool = false) {
         if isPreview {
@@ -23,6 +24,7 @@ struct HomeView: View {
     @State private var currentTime = Date()
     @State private var showHolidaysView = false
     @State private var showCampusCafeView = false
+    @State private var showNotificationPromptView = false
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
     var body: some View {
@@ -56,8 +58,18 @@ struct HomeView: View {
             .sheet(isPresented: $showCampusCafeView) {
                 CampusCafeView()
             }
+            .sheet(isPresented: $showNotificationPromptView, onDismiss: {
+                hasSeenHomeNotificationPrompt = true
+            }) {
+                HomeNotificationPromptView()
+            }
             .onReceive(timer) { date in
                 currentTime = date
+            }
+            .onAppear {
+                if !hasSeenHomeNotificationPrompt {
+                    showNotificationPromptView = true
+                }
             }
     }
     

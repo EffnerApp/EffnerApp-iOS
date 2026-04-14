@@ -28,7 +28,6 @@ struct HomeNotificationPromptView: View {
                         .font(.title)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(.black)
                         .padding(.horizontal, 28)
 
                     Image(systemName: "bell.badge.fill")
@@ -39,10 +38,13 @@ struct HomeNotificationPromptView: View {
                         .symbolRenderingMode(.hierarchical)
 
                     VStack(spacing: 30) {
-                        Text("Mochtest du Push-Benachrichtigungen aktivieren, damit du bei neuen Vertretungen direkt informiert wirst?")
+                        Text("""
+                        Möchtest du Push-Benachrichtigungen aktivieren, damit du bei neuen Vertretungen deiner Klasse direkt informiert wirst?
+                        
+                        Du kannst die Benachrichtungen jederzeit in den Einstellungen anpassen.
+                        """)
                             .font(.body)
                             .multilineTextAlignment(.center)
-                            .foregroundStyle(.black)
                             .padding(.horizontal, 34)
 
                         Toggle(isOn: Binding(
@@ -54,7 +56,7 @@ struct HomeNotificationPromptView: View {
                             }
                         )) {
                             Label("Push-Benachrichtigungen", systemImage: "bell.fill")
-                                .foregroundStyle(.black)
+                                .foregroundStyle(.primary)
                         }
                         .disabled(isTogglingNotifications)
                         .padding(.vertical, 22)
@@ -65,6 +67,7 @@ struct HomeNotificationPromptView: View {
 
                     Spacer(minLength: 32)
                 }
+                .foregroundStyle(.primary)
                 .padding(.top, 0)
                 .padding(.bottom, 28)
                 .alert("Benachrichtigungen aktivieren", isPresented: $showingPermissionAlert) {

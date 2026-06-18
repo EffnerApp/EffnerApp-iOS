@@ -31,8 +31,9 @@ struct HomeView: View {
         BaseContentView(
             caches: [holidaysCache],
             navigationTitle: "Jetzt",
-            errorTitle: "error",
-            errorDescription: "could not load home view") { cache in
+            errorTitle: "Das sollte nicht so sein...",
+            errorSystemImage: "network.slash",
+            errorDescription: "Leider kann 'Jetzt' nicht geladen werden. Bitte versuche es später erneut.") { cache in
                 ScrollView {
                     VStack(spacing: 16) {
                         // Bento-Grid Layout

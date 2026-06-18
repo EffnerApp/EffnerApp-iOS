@@ -25,6 +25,7 @@ struct TimetableView: View {
             caches: [timetablesCache],
             navigationTitle: "Stundenplan",
             errorTitle: "Kein Stundenplan verfügbar",
+            errorSystemImage: "calendar.badge.lock",
             errorDescription: "Der Stundenplan konnte nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: false,
             content: { cache in

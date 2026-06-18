@@ -51,7 +51,8 @@ class TimetablesCache: BaseCache<TimetableResponse> {
             saveTimetables(response)
             Self.logger.info("Cache refreshed successfully.")
         case .failure(let error):
-            await setError()
+            let statusCode = extractStatusCode(from: error)
+            await setError(statusCode: statusCode)
             Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }

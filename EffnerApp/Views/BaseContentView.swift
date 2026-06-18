@@ -21,6 +21,10 @@ class CacheCollection: ObservableObject {
         caches.contains { $0.hasError }
     }
     
+    var errorStatusCode: Int? {
+        caches.first { $0.hasError }?.errorStatusCode
+    }
+    
     var isEmpty: Bool {
         !caches.isEmpty && caches.allSatisfy { $0.isEmpty }
     }
@@ -124,6 +128,10 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
     private var contentView: some View {
         Group {
             if cacheCollection.hasError {
+                let effectiveErrorDescription = cacheCollection.errorStatusCode == 429
+                    ? "Du hast zu viele Anfragen in kurzer Zeit gestellt. Bitte warte einen Moment und versuche es dann erneut."
+                    : errorDescription
+                
                 ContentUnavailableView {
                     Label {
                         Text(errorTitle)
@@ -133,7 +141,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
                             .foregroundStyle(.yellow, .orange)
                     }
                 } description: {
-                    Text(errorDescription)
+                    Text(effectiveErrorDescription)
                 } actions: {
                     Button("Erneut versuchen") {
                         Task {

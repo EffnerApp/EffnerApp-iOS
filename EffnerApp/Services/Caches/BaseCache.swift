@@ -12,6 +12,7 @@ import Combine
 protocol CacheProtocol: ObservableObject {
     var hasError: Bool { get }
     var isEmpty: Bool { get }
+    var errorStatusCode: Int? { get }
     func refreshCache() async
 }
 
@@ -22,10 +23,17 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
         case idle
         case loading
         case loaded(ResponseType)
-        case error
+        case error(statusCode: Int?)
     }
     
     @Published var loadState: LoadState = .idle
+    
+    var errorStatusCode: Int? {
+        if case .error(let statusCode) = loadState {
+            return statusCode
+        }
+        return nil
+    }
     
     var cachedResponse: ResponseType? {
         if case .loaded(let response) = loadState {
@@ -101,9 +109,23 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
     }
     
     /// Setzt Error-State
-    func setError() async {
+    func setError(statusCode: Int? = nil) async {
         await MainActor.run { [weak self] in
-            self?.loadState = .error
+            self?.loadState = .error(statusCode: statusCode)
+        }
+    }
+    
+    /// Extrahiert den Statuscode aus einem NetworkError
+    func extractStatusCode(from error: Error) -> Int? {
+        guard let networkError = error as? NetworkError else { return nil }
+        
+        switch networkError {
+        case .clientError(_, let statusCode, _),
+             .serverError(_, let statusCode, _),
+             .unknownError(_, let statusCode, _):
+            return statusCode
+        default:
+            return nil
         }
     }
     

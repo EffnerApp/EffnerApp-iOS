@@ -47,6 +47,7 @@ struct SubstitutionsView: View {
                             .id("pastSubstitution_\(plan.planDate)")
                         }
                         
+                        // Heute
                         ForEach(plans.filter { getPlanTimeType($0.planDate) == .TODAY }) { plan in
                             Section(header: SubstitutionSeparatorView(date: plan.planDate, planTimeType: .TODAY)) {
                                 SubstitutionDayContent(plan: plan)
@@ -114,7 +115,7 @@ struct SubstitutionDayContent: View {
             } else {
                 // Informationen
                 if hasInfos {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Informationen")
                             .font(.headline)
                         
@@ -128,13 +129,12 @@ struct SubstitutionDayContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 12)
                     .padding(.bottom, 8)
                 }
                 
                 // Abwesende Klassen
                 if hasAbsences {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Abwesende Klassen")
                             .font(.headline)
                         
@@ -151,13 +151,12 @@ struct SubstitutionDayContent: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 12)
                     .padding(.bottom, 8)
                 }
                 
                 // Vertretungen
                 if hasSubstitutions {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Vertretungen")
                             .font(.headline)
                         
@@ -168,26 +167,27 @@ struct SubstitutionDayContent: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 12)
                 }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 2)
+        .padding(.horizontal, 12)
     }
 }
 
 struct SubstitutionRowView: View {
+    @EnvironmentObject public var session: UserSession
     let substitution: Substitution
     let isLast: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack() {
             HStack(alignment: .center) {
                 // Stunde
                 Text("\(substitution.period).")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .frame(width: 40, alignment: .leading)
+                    .padding(.trailing, 4)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     // Lehrer und Vertretung
@@ -229,6 +229,13 @@ struct SubstitutionRowView: View {
                                 .font(.subheadline)
                         }
                     }
+                }
+                
+                if(substitution.klassName != session.user?.klasses.first) {
+                    Spacer()
+                    Text("\(substitution.klassName)")
+                        .font(.callout)
+                        .padding(.leading, 2)
                 }
             }
             .padding(.vertical, 4)

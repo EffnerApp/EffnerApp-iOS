@@ -35,7 +35,7 @@ struct Absence: Codable, Identifiable {
     let periods: String
     
     enum CodingKeys: String, CodingKey {
-        case className = "class"
+        case className = "class" //TODO: Change sometime in backend
         case periods
     }
     

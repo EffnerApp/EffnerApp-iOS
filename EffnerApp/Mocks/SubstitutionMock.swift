@@ -62,7 +62,7 @@ struct MockSubstitution {
                         klassName: "13Q3",
                         teacher: "Koch",
                         substitute: "Becker",
-                        period: "5",
+                        period: "55",
                         room: "A104",
                         info: "Physik"
                     )

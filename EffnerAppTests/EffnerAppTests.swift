@@ -12,8 +12,8 @@ import Testing
 struct EffnerAppTests {
     
     // Dummy Login-Daten für Tests
-    static let username = "193622"
-    static let password = "JEG1952"
+    static let username = "username"
+    static let password = "password"
     static let dummyClass = "5A"
     
     // Diese Funktion wird vor allen Tests in dieser Suite ausgeführt

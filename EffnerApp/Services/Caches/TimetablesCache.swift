@@ -49,7 +49,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
         switch result {
         case .success(let response):
             saveTimetables(response)
-            Self.logger.info("Cache refreshed successfully.")
+            Self.logger.info("Timetable Cache refreshed successfully.")
         case .failure(let error):
             let statusCode = extractStatusCode(from: error)
             await setError(statusCode: statusCode)

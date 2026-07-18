@@ -53,7 +53,7 @@ class HolidaysCache: BaseCache<[Holiday]> {
         switch result {
         case .success(let holidays):
             saveHolidays(holidays)
-            Self.logger.info("Cache refreshed successfully.")
+            Self.logger.info("Exams Cache refreshed successfully.")
         case .failure(let error):
             let statusCode = extractStatusCode(from: error)
             await setError(statusCode: statusCode)

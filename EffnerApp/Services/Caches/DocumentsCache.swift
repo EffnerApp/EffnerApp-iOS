@@ -53,7 +53,7 @@ class DocumentsCache: BaseCache<DocumentsResponse> {
         switch result {
         case .success(let response):
             saveDocuments(response)
-            Self.logger.info("Cache refreshed successfully.")
+            Self.logger.info("Docu Cache refreshed successfully.")
         case .failure(let error):
             let statusCode = extractStatusCode(from: error)
             await setError(statusCode: statusCode)

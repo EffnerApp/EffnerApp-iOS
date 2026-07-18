@@ -40,7 +40,7 @@ struct HomeView: View {
                         BentoGridLayout(
                             currentTime: currentTime,
                             importantInfos: importantInfos,
-                            todaySubstitutions: todaySubstitutions,
+                            substitutionPlans: substitutionsCache.cachedResponse?.plans,
                             showHolidaysView: $showHolidaysView,
                             showCampusCafeView: $showCampusCafeView
                         )
@@ -75,22 +75,6 @@ struct HomeView: View {
     }
     
     // MARK: - Computed Properties
-    private var todaySubstitutions: [Substitution]? {
-        guard let plans = substitutionsCache.cachedResponse?.plans else { return nil }
-        
-        let today = Calendar.current.startOfDay(for: Date())
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        
-        for plan in plans {
-            if let planDate = dateFormatter.date(from: plan.planDate),
-               Calendar.current.isDate(planDate, inSameDayAs: today) {
-                return plan.substitutions
-            }
-        }
-        return nil
-    }
-    
     private var importantInfos: [String] {
         guard let plans = substitutionsCache.cachedResponse?.plans else { return [] }
         
@@ -116,14 +100,14 @@ struct HomeView: View {
 struct BentoGridLayout: View {
     let currentTime: Date
     let importantInfos: [String]
-    let todaySubstitutions: [Substitution]?
+    let substitutionPlans: [SubstitutionPlan]?
     @Binding var showHolidaysView: Bool
     @Binding var showCampusCafeView: Bool
         
     var body: some View {
         VStack(spacing: 12) {
             TimelineBarComponent(
-                substitutions: todaySubstitutions,
+                substitutionPlans: substitutionPlans,
                 currentTime: currentTime,
             )
             

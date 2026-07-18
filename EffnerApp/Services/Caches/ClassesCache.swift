@@ -45,7 +45,7 @@ class ClassesCache: BaseCache<[String]> {
         switch result {
         case .success(let response):
             saveClasses(response)
-            Self.logger.info("Cache refreshed successfully.")
+            Self.logger.info("Classes Cache refreshed successfully.")
         case .failure(let error):
             await setError()
             Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")

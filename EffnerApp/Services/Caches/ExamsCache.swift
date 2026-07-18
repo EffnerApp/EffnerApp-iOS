@@ -48,7 +48,7 @@ class ExamsCache: BaseCache<ExamsResponse> {
         case .success(let response):
             if !response.exams.isEmpty {
                 saveExams(response)
-                Self.logger.info("Cache refreshed successfully.")
+                Self.logger.info("Exams Cache refreshed successfully.")
             } else {
                 Self.logger.warning("No exams available.")
                 await setError()

@@ -43,7 +43,7 @@ class SubstitutionsCache: BaseCache<SubstitutionResponse> {
         case .success(let response):
             if response.plans.isEmpty == false, let _ = response.plans.first {
                 saveSubstitutions(response)
-                Self.logger.info("Cache refreshed successfully with \(response.plans.count) plan(s).")
+                Self.logger.info("Subtituions Cache refreshed successfully with \(response.plans.count) plan(s).")
             } else {
                 Self.logger.warning("No substitution plans available.")
                 await setError()

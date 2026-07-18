@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: - Timeline Bar View
 struct TimelineBarComponent: View {
     @ObservedObject var timetableCache = TimetablesCache.shared
-    let substitutions: [Substitution]?
+    let substitutionPlans: [SubstitutionPlan]?
     let currentTime: Date
     private let cardWidth: CGFloat = 100
     private let cardSpacing: CGFloat = 3
@@ -164,8 +164,29 @@ struct TimelineBarComponent: View {
         return "\(startShort)-\(endShort)"
     }
     
+    /// Returns the substitutions for the day currently displayed in the timeline.
+    /// This ensures that the timeline shows substitutions for the same day as the timetable,
+    /// even if the current calendar day is a weekend or holiday.
+    private var substitutionsForDisplayedDay: [Substitution]? {
+        guard let plans = substitutionPlans else { return nil }
+        
+        let calendar = Calendar.current
+        let displayedDate = calendar.startOfDay(for: nextAvailableDay.date)
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        
+        for plan in plans {
+            if let planDate = dateFormatter.date(from: plan.planDate),
+               calendar.isDate(planDate, inSameDayAs: displayedDate) {
+                return plan.substitutions
+            }
+        }
+        return nil
+    }
+    
     private func hasSubstitutionForPeriod(_ period: Int) -> Bool {
-        guard let substitutions = substitutions else { return false }
+        guard let substitutions = substitutionsForDisplayedDay else { return false }
         return substitutions.contains { $0.period == "\(period)" }
     }
     

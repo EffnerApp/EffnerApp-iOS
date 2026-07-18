@@ -54,7 +54,7 @@ class ConfigCache: BaseCache<String> {
         switch result {
         case .success(let response):
             saveConfig(response)
-            Self.logger.info("Cache refreshed successfully.")
+            Self.logger.info("Config Cache refreshed successfully.")
         case .failure(let error):
             await setError()
             Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")

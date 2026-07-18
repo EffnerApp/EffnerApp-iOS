@@ -60,6 +60,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
     let useScrollViewReader: Bool
     let scrollToId: (CacheCollection) -> String?
     let isModal: Bool
+    let isRefreshable: Bool
     let content: (CacheCollection) -> Content
     let skeletonView: () -> SkeletonView
     
@@ -72,6 +73,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
         useScrollViewReader: Bool = false,
         scrollToId: @escaping (CacheCollection) -> String? = { _ in nil },
         isModal: Bool = false,
+        isRefreshable: Bool = false,
         @ViewBuilder content: @escaping (CacheCollection) -> Content,
         @ViewBuilder skeletonView: @escaping () -> SkeletonView
     ) {
@@ -83,6 +85,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
         self.useScrollViewReader = useScrollViewReader
         self.scrollToId = scrollToId
         self.isModal = isModal
+        self.isRefreshable = isRefreshable
         self.content = content
         self.skeletonView = skeletonView
     }
@@ -126,7 +129,7 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
     
     @ViewBuilder
     private var contentView: some View {
-        Group {
+        let contentGroupView = Group {
             if cacheCollection.hasError {
                 let effectiveErrorDescription = cacheCollection.errorStatusCode == 429
                     ? "Du hast zu viele Anfragen in kurzer Zeit gestellt. Bitte warte einen Moment und versuche es dann erneut."
@@ -155,6 +158,18 @@ struct BaseContentView<Content: View, SkeletonView: View>: View {
             } else {
                 content(cacheCollection)
             }
+        }
+    
+        if isRefreshable {
+            contentGroupView.refreshable {
+                // Ein eigener Task verhindert, dass ein SwiftUI-View-Update
+                // den Netzwerk-Request abbricht. Wir warten trotzdem, damit
+                // der Refresh-Indikator so lange läuft, bis alles fertig ist.
+                let task = Task { await cacheCollection.refreshAll() }
+                await task.value
+            }
+        } else {
+            contentGroupView
         }
     }
 }

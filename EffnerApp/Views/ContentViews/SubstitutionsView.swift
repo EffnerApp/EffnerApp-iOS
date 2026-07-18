@@ -35,6 +35,7 @@ struct SubstitutionsView: View {
                 }
                 return nil
             },
+            isRefreshable: true,
             content: { cache in
                 List {
                     if let plans = substitutionsCache.cachedSubstitutionPlans?.plans {

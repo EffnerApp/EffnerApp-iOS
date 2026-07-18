@@ -25,6 +25,7 @@ struct ExamsView: View {
             errorDescription: "Die Klausuren konnten nicht geladen werden. Bitte versuche es später erneut.",
             useScrollViewReader: true,
             scrollToId: { _ in "futureExams" },
+            isRefreshable: true,
             content: { cache in
                 if let examResponse = examsCache.cachedExamResponse {
                     List {

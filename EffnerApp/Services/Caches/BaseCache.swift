@@ -35,12 +35,7 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
         return nil
     }
     
-    var cachedResponse: ResponseType? {
-        if case .loaded(let response) = loadState {
-            return response
-        }
-        return nil
-    }
+    @Published var cachedResponse: ResponseType?
     
     var hasError: Bool {
         if case .error = loadState {
@@ -51,14 +46,7 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
     }
     
     var isEmpty: Bool {
-        switch loadState {
-        case .idle, .loading:
-            return true
-        case .loaded:
-            return false
-        case .error:
-            return true
-        }
+        cachedResponse == nil
     }
     
     private var cancellables = Set<AnyCancellable>()
@@ -72,6 +60,7 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
     /// Speichert die Response im Cache
     public func saveResponse(_ response: ResponseType) {
         DispatchQueue.main.async { [weak self] in
+            self?.cachedResponse = response
             self?.loadState = .loaded(response)
         }
     }

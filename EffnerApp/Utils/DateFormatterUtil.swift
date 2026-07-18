@@ -48,7 +48,27 @@ struct DateFormatterUtil {
         }
         return isoString
     }
-    
+
+    public static func formatToWeekdayDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, dd.MM.yyyy"
+        formatter.locale = Locale(identifier: "de_DE")
+        return formatter.string(from: date)
+    }
+
+    public static func formatToWeekdayDate(_ dateString: String) -> String {
+        let germanFormatter = DateFormatter()
+        germanFormatter.dateFormat = "dd.MM.yyyy"
+
+        let isoFormatter = DateFormatter()
+        isoFormatter.dateFormat = "yyyy-MM-dd"
+
+        if let date = germanFormatter.date(from: dateString) ?? isoFormatter.date(from: dateString) {
+            return formatToWeekdayDate(date)
+        }
+        return dateString
+    }
+
 }
 
 

@@ -253,16 +253,7 @@ struct SubstitutionSeparatorView: View {
     var planTimeType: PlanTimeType
     
     private var formattedDate: String {
-        let inputFormatter = DateFormatter()
-        inputFormatter.dateFormat = "yyyy-MM-dd"
-        
-        let outputFormatter = DateFormatter()
-        outputFormatter.dateFormat = "dd.MM.yyyy"
-        
-        if let parsed = inputFormatter.date(from: date) {
-            return outputFormatter.string(from: parsed)
-        }
-        return date
+        DateFormatterUtil.formatToWeekdayDate(date)
     }
     
     var body: some View {

@@ -29,7 +29,7 @@ struct TimelineBarComponent: View {
         // Timeline Widget (nimmt volle Breite)
         GridWidget(
             icon: "clock.fill",
-            title: "Timeline am \(DateFormatterUtil.formatToShortDate(nextAvailableDay.date))",
+            title: "Timeline am \(DateFormatterUtil.formatToWeekdayDate(nextAvailableDay.date))",
             iconColor: .blue,
             removePadding: true
         ) {

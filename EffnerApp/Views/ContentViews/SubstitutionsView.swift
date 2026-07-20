@@ -182,13 +182,13 @@ struct SubstitutionRowView: View {
     let isLast: Bool
     
     var body: some View {
-        VStack() {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center) {
                 // Stunde
                 Text("\(substitution.period).")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .padding(.trailing, 4)
+                    .frame(width: 40, alignment: .leading)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     // Lehrer und Vertretung
@@ -232,13 +232,15 @@ struct SubstitutionRowView: View {
                     }
                 }
                 
-                if(substitution.klassName != session.user?.klasses.first) {
-                    Spacer()
+                Spacer(minLength: 0)
+                
+                if substitution.klassName != session.user?.primaryClass {
                     Text("\(substitution.klassName)")
                         .font(.callout)
                         .padding(.leading, 2)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
             
             if !isLast {

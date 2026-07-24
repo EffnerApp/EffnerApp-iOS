@@ -182,7 +182,7 @@ struct SubstitutionRowView: View {
     let isLast: Bool
     
     var body: some View {
-        VStack() {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center) {
                 // Stunde
                 Text("\(substitution.period).")

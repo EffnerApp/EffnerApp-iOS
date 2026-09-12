@@ -41,6 +41,7 @@ class NotificationService: ObservableObject {
             isEnabled = false
             return
         }
+        
         isEnabled = notificationsEnabled && (authorizationStatus == .authorized)
     }
     
@@ -91,7 +92,12 @@ class NotificationService: ObservableObject {
     func disableNotifications() {
         Task {
             await clearDeviceToken()
+            await MainActor.run {
+                UserSession.shared.user?.deviceToken = nil
+                UserDefaults.standard.removeObject(forKey: "userDeviceToken")
+            }
         }
+        deviceToken = nil
         isEnabled = false
         UserDefaults.standard.set(false, forKey: "notificationsEnabled")
     }

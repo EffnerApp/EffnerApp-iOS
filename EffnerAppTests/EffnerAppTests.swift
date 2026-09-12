@@ -20,10 +20,13 @@ struct EffnerAppTests {
     init() async throws {
         // Erstelle einen Dummy-User für Tests
         let testUser = User(
-            id: Self.username,
+            ssbId: "test-ssb-id",
+            ssbToken: "test-ssb-token",
+            username: Self.username,
             password: Self.password,
-            klass: Self.dummyClass,
-            isAuthorized: true
+            klasses: [Self.dummyClass],
+            isAuthorized: true,
+            deviceToken: nil
         )
         
         // Setze den User in der UserSession
@@ -41,7 +44,7 @@ struct EffnerAppTests {
         }
         
         #expect(currentUser != nil, "User sollte nach dem Setup vorhanden sein")
-        #expect(currentUser?.id == Self.username, "Username sollte übereinstimmen")
+        #expect(currentUser?.username == Self.username, "Username sollte übereinstimmen")
         #expect(currentUser?.isAuthorized == true, "User sollte autorisiert sein")
     }
     

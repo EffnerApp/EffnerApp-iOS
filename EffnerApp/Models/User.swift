@@ -14,14 +14,18 @@ class UserSession: ObservableObject {
     private static let logger = Log.auth
     static let shared = UserSession()
     
-    //var user: User? = nil {
-     //   didSet {
-      //      objectWillChange.send()
-      //  }
+    var user: User? = nil //{
+    //    didSet {
+    //       objectWillChange.send()
+    //    }
     //}
-    var user: User? = nil
     var isCheckingAuthorization: Bool = true
     var subjectSelectionsVersion: Int = 0
+    
+    var deviceToken: String? {
+        get { user?.deviceToken }
+        set { user?.deviceToken = newValue }
+    }
     
     private init() {
         // Initialize the UserSessions
@@ -36,10 +40,21 @@ class UserSession: ObservableObject {
         Task { @MainActor in
             let isAuthorized = await AuthService().authorize(user: user)
             switch isAuthorized {
-            case .success(let authorized):
-                if authorized {
-                    Self.logger.info("User is authorized.")
-                    self.user?.isAuthorized = true
+            case .success(let response):
+                Self.logger.info("User is authorized.")
+                self.user?.isAuthorized = true
+                self.user?.deviceToken = response.deviceToken
+                
+                if let serverToken = response.deviceToken {
+                    UserDefaults.standard.set(serverToken, forKey: "userDeviceToken")
+                    UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+                    NotificationService.shared.deviceToken = serverToken
+                    await NotificationService.shared.checkAuthorizationStatus()
+                } else {
+                    UserDefaults.standard.removeObject(forKey: "userDeviceToken")
+                    UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+                    NotificationService.shared.deviceToken = nil
+                    NotificationService.shared.isEnabled = false
                 }
             case .failure(let error):
                 Self.logger.error("Authorization failed with error: \(error)")
@@ -105,8 +120,18 @@ class UserSession: ObservableObject {
             return nil
         }
         
+        let savedDeviceToken = UserDefaults.standard.string(forKey: "userDeviceToken")
+        
         // Set user
-        return User(ssbId: ssbCred?.key ?? "", ssbToken: ssbCred?.value ?? "", username: cred?.key ?? "", password: cred?.value ?? "", klasses: klasses, isAuthorized: true)
+        return User(
+            ssbId: ssbCred?.key ?? "",
+            ssbToken: ssbCred?.value ?? "",
+            username: cred?.key ?? "",
+            password: cred?.value ?? "",
+            klasses: klasses,
+            isAuthorized: true,
+            deviceToken: savedDeviceToken
+        )
     }
     
     @MainActor
@@ -115,6 +140,7 @@ class UserSession: ObservableObject {
         _ = await NotificationService.shared.deleteUser()
         NotificationService.shared.isEnabled = false
         UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+        UserDefaults.standard.removeObject(forKey: "userDeviceToken")
         
         // Now clear credentials and user session
         user?.clearCredentials()
@@ -137,6 +163,7 @@ struct User: Codable {
     var klasses: [String] = [] // List of classes the user is in
     
     var isAuthorized: Bool = false
+    var deviceToken: String? = nil
     
     // Computed property to get the primary class (first in list or fallback to klass)
     var primaryClass: String? {
@@ -176,6 +203,8 @@ struct User: Codable {
         KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier)
         // Remove Klasses from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userKlasses")
+        // Remove userDeviceToken from UserDefaults
+        UserDefaults.standard.removeObject(forKey: "userDeviceToken")
         // Remove subject selections for all classes
         for klass in klasses {
             UserDefaults.standard.removeObject(forKey: "subjectSelections_\(klass)")

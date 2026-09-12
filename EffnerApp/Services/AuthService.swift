@@ -38,7 +38,8 @@ class AuthService : ObservableObject {
                 username: username,
                 password: password,
                 klasses: klasses,
-                isAuthorized: true
+                isAuthorized: true,
+                deviceToken: ssbUserResponse.deviceToken
             )
             
             await MainActor.run {
@@ -48,6 +49,10 @@ class AuthService : ObservableObject {
             user.saveCredentials()
             user.saveKlasses()
             user.saveSSBCredentials()
+            if let token = ssbUserResponse.deviceToken {
+                UserDefaults.standard.set(token, forKey: "userDeviceToken")
+                UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+            }
             
             Self.logger.info("SSB user created successfully: \(ssbUserResponse.id)")
             return .success(user)
@@ -60,14 +65,14 @@ class AuthService : ObservableObject {
         }
     }
     
-    func authorize(user: User) async -> Result<Bool, NetworkError> {
+    func authorize(user: User) async -> Result<SSBUserResponse, NetworkError> {
         let auth = user.generateSSBTokenAuth()
         
         do {
-            let _: SSBUserResponse = try await networkManager.fetch(
+            let response: SSBUserResponse = try await networkManager.fetch(
                 from: GetUserEndpoint(userId: user.ssbId, auth: auth)
             )
-            return .success(true)
+            return .success(response)
         } catch let networkError as NetworkError {
             self.error = networkError
             return .failure(self.error!)

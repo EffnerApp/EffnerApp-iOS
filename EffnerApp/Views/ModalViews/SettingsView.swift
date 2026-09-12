@@ -53,7 +53,9 @@ struct SettingsView: View {
                     Section {
                         // Push Benachrichtigungen Toggle
                         Toggle(isOn: Binding(
-                            get: { notificationService.isEnabled },
+                            get: {
+                                notificationService.isEnabled
+                            },
                             set: { newValue in
                                 Task {
                                     await handleNotificationToggle(newValue)
@@ -62,7 +64,7 @@ struct SettingsView: View {
                         )) {
                             Label("Push-Benachrichtigungen", systemImage: "bell.fill")
                         }
-                        .disabled(isTogglingNotifications)
+                        .disabled(isTogglingNotifications || session.isCheckingAuthorization)
                         
                         // Klassen-Auswahl (Multi-Select)
                         NavigationLink(destination: ClassSelectionView()) {
@@ -154,6 +156,10 @@ struct SettingsView: View {
         )
         .task {
             // Status beim Öffnen der View aktualisieren
+            if !session.isCheckingAuthorization && session.user?.deviceToken == nil {
+                notificationService.isEnabled = false
+                UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+            }
             await notificationService.checkAuthorizationStatus()
         }
     }

@@ -41,6 +41,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         case .success(let response):
             Self.logger.info("Notification user updated successfully.")
             Self.logger.debug("Notification update response: \(String(describing: response), privacy: .private)")
+            await MainActor.run {
+                let token = response.deviceToken ?? NotificationService.shared.deviceToken
+                UserSession.shared.user?.deviceToken = token
+                if let token = token {
+                    UserDefaults.standard.set(token, forKey: "userDeviceToken")
+                }
+                NotificationService.shared.isEnabled = true
+                UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+            }
         case .failure(let error):
             Self.logger.error("Failed to update notification user: \(error.localizedDescription)")
         }

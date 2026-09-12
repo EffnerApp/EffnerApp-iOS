@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HomeNotificationPromptView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var notificationService = NotificationService.shared
 
     @State private var showingPermissionAlert = false
@@ -21,7 +22,7 @@ struct HomeNotificationPromptView: View {
             errorDescription: "Die Benachrichtigungseinstellungen konnten nicht geladen werden.",
             isModal: true,
             content: { _ in
-                VStack(spacing: 50) {
+                VStack(spacing: 36) {
                     Spacer(minLength: 0)
 
                     Text("Benachrichtigungen aktivieren?")
@@ -37,7 +38,7 @@ struct HomeNotificationPromptView: View {
                         .foregroundStyle(.tint)
                         .symbolRenderingMode(.hierarchical)
 
-                    VStack(spacing: 30) {
+                    VStack(spacing: 24) {
                         Text("""
                         Möchtest du Push-Benachrichtigungen aktivieren, damit du bei neuen Vertretungen deiner Klasse direkt informiert wirst?
                         
@@ -65,7 +66,19 @@ struct HomeNotificationPromptView: View {
                         .padding(.horizontal, 28)
                     }
 
-                    Spacer(minLength: 32)
+                    Spacer(minLength: 16)
+
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text(notificationService.isEnabled ? "Weiter" : "Überspringen")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding(.horizontal, 28)
                 }
                 .foregroundStyle(.primary)
                 .padding(.top, 0)

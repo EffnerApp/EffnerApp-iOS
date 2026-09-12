@@ -55,4 +55,34 @@ struct EffnerAppTests {
         print(timetables)
     }
 
+    @Test func extraordinaryClassesTest() async throws {
+        let serverClasses = ["5A", "6B", "7C"]
+        let userKlasses = ["5A", "OldClass1", "OldClass2"]
+        
+        let serverSet = Set(serverClasses)
+        let extraordinary = userKlasses.filter { !serverSet.contains($0) }
+        
+        #expect(extraordinary == ["OldClass1", "OldClass2"], "Klassen, die nicht vom Server geliefert werden, sollten als außergewöhnlich erkannt werden")
+        
+        // Simuliere Abwählen einer außergewöhnlichen Klasse
+        var selectedClasses = userKlasses
+        if let index = selectedClasses.firstIndex(of: "OldClass1"), selectedClasses.count > 1 {
+            selectedClasses.remove(at: index)
+        }
+        
+        #expect(!selectedClasses.contains("OldClass1"), "OldClass1 sollte abgewählt worden sein")
+        #expect(selectedClasses.contains("OldClass2"), "OldClass2 sollte noch ausgewählt sein")
+        #expect(selectedClasses.contains("5A"), "5A sollte noch ausgewählt sein")
+        
+        // Simuliere Speichern im User
+        await MainActor.run {
+            UserSession.shared.updateUserKlasses(selectedClasses)
+        }
+        
+        let updatedUser = await MainActor.run {
+            UserSession.shared.user
+        }
+        #expect(updatedUser?.klasses == ["5A", "OldClass2"], "User klasses sollten aktualisiert sein")
+    }
+
 }

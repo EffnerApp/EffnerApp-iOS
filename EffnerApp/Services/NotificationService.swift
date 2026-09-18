@@ -91,7 +91,7 @@ class NotificationService: ObservableObject {
     /// Deaktiviert Benachrichtigungen
     func disableNotifications() {
         Task {
-            await clearDeviceToken()
+            _ = await clearDeviceToken()
             await MainActor.run {
                 UserSession.shared.user?.deviceToken = nil
                 UserDefaults.standard.removeObject(forKey: "userDeviceToken")

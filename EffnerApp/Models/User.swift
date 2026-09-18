@@ -146,6 +146,7 @@ class UserSession: ObservableObject {
         user?.clearCredentials()
         user?.clearSSBCredentials()
         user = nil
+        TimetablesCache.shared.clearCache()
         Self.logger.info("User logged out and credentials cleared.")
         
         // notify caches
@@ -205,14 +206,37 @@ struct User: Codable {
         UserDefaults.standard.removeObject(forKey: "userKlasses")
         // Remove userDeviceToken from UserDefaults
         UserDefaults.standard.removeObject(forKey: "userDeviceToken")
-        // Remove subject selections for all classes
+        // Remove subject selections and cached timetables for all classes
         for klass in klasses {
             UserDefaults.standard.removeObject(forKey: "subjectSelections_\(klass)")
+            UserDefaults.standard.removeObject(forKey: "cachedTimetable_\(klass)")
         }
     }
     
     func saveKlasses() {
         UserDefaults.standard.set(klasses, forKey: "userKlasses")
+    }
+    
+    // MARK: - Timetable Storage (Stundenplan Cache)
+    
+    /// Speichert den Stundenplan für die aktuelle primaryClass
+    func saveTimetable(_ timetable: TimetableResponse) {
+        guard let className = primaryClass else { return }
+        let key = "cachedTimetable_\(className)"
+        if let data = try? JSONEncoder().encode(timetable) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+    
+    /// Lädt den Stundenplan für die aktuelle primaryClass
+    func loadTimetable() -> TimetableResponse? {
+        guard let className = primaryClass else { return nil }
+        let key = "cachedTimetable_\(className)"
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let timetable = try? JSONDecoder().decode(TimetableResponse.self, from: data) else {
+            return nil
+        }
+        return timetable
     }
     
     // MARK: - Subject Selections (Fächerauswahl im Stundenplan)

@@ -13,6 +13,25 @@ class TimetablesCache: BaseCache<TimetableResponse> {
     private static let logger = Log.timetable
     static let shared = TimetablesCache()
     
+    override init() {
+        super.init()
+        loadInitialTimetable()
+    }
+    
+    /// Lädt den Stundenplan sofort aus dem Storage, falls vorhanden
+    public func loadInitialTimetable() {
+        if let stored = UserSession.shared.user?.loadTimetable() {
+            self.cachedResponse = stored
+            self.loadState = .loaded(stored)
+        }
+    }
+    
+    /// Setzt den Cache zurück (z.B. beim Logout)
+    public func clearCache() {
+        self.cachedResponse = nil
+        self.loadState = .idle
+    }
+    
     // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
     override var hasError: Bool {
         if case .error = loadState {
@@ -27,6 +46,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
     
     // Convenience-Methode für bessere API
     public func saveTimetables(_ timetables: TimetableResponse) {
+        UserSession.shared.user?.saveTimetable(timetables)
         saveResponse(timetables)
     }
     
@@ -34,7 +54,18 @@ class TimetablesCache: BaseCache<TimetableResponse> {
     override public func refreshCache() async {
         guard isUserAuthorized() else { return }
         
-        await setLoading()
+        // Gespeicherten Stundenplan für die aktive Klasse laden, falls vorhanden
+        if let stored = UserSession.shared.user?.loadTimetable() {
+            await MainActor.run {
+                self.cachedResponse = stored
+                self.loadState = .loaded(stored)
+            }
+        } else {
+            await MainActor.run {
+                self.cachedResponse = nil
+            }
+            await setLoading()
+        }
         
         // Mock-Daten für Test-User
         if shouldUseMockData() {
@@ -51,8 +82,11 @@ class TimetablesCache: BaseCache<TimetableResponse> {
             saveTimetables(response)
             Self.logger.info("Timetable Cache refreshed successfully.")
         case .failure(let error):
-            let statusCode = extractStatusCode(from: error)
-            await setError(statusCode: statusCode)
+            // Wenn bereits Daten aus dem Storage vorliegen, Status nicht auf Error setzen
+            if cachedResponse == nil {
+                let statusCode = extractStatusCode(from: error)
+                await setError(statusCode: statusCode)
+            }
             Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
     }

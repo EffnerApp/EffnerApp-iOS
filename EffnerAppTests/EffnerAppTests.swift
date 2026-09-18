@@ -6,6 +6,7 @@
 //
 
 import Testing
+import Foundation
 @testable import EffnerApp
 
 @Suite("Effner App Tests")
@@ -83,6 +84,50 @@ struct EffnerAppTests {
             UserSession.shared.user
         }
         #expect(updatedUser?.klasses == ["5A", "OldClass2"], "User klasses sollten aktualisiert sein")
+    }
+
+    @Test func timetableStorageAndSelectionsTest() async throws {
+        let testClass = "TestClass10"
+        let mockTimetable = MockTimetable.mockTimetable
+        
+        // 1. User auf Testklasse setzen
+        await MainActor.run {
+            UserSession.shared.user?.klasses = [testClass]
+        }
+        
+        // 2. Speichern im Storage über TimetablesCache (nutzt User.saveTimetable mit primaryClass)
+        TimetablesCache.shared.saveTimetables(mockTimetable)
+        
+        // 3. Aus User Storage laden und prüfen
+        let user = await MainActor.run {
+            UserSession.shared.user!
+        }
+        let loadedTimetable = user.loadTimetable()
+        #expect(loadedTimetable != nil, "Stundenplan sollte im User-Storage gespeichert worden sein")
+        #expect(loadedTimetable?.slots.count == mockTimetable.slots.count, "Slots-Anzahl sollte übereinstimmen")
+        
+        // 4. Fächerauswahl (User Changes) speichern und laden
+        let testSelections = ["0_0": "L", "0_1": "E"]
+        user.saveSubjectSelections(testSelections)
+        
+        let loadedSelections = user.loadSubjectSelections()
+        #expect(loadedSelections == testSelections, "Fächerauswahl des Nutzers sollte aus dem Storage geladen werden")
+        
+        // 5. Initiales Laden des Stundenplans beim App-Start testen
+        await MainActor.run {
+            TimetablesCache.shared.cachedResponse = nil
+            TimetablesCache.shared.loadInitialTimetable()
+        }
+        
+        let initialCached = await MainActor.run {
+            TimetablesCache.shared.cachedResponse
+        }
+        #expect(initialCached != nil, "Stundenplan sollte beim Start sofort aus dem Storage geladen werden")
+        #expect(initialCached?.slots.count == mockTimetable.slots.count, "Geladener Stundenplan sollte korrekt sein")
+        
+        // Cleanup
+        UserDefaults.standard.removeObject(forKey: "cachedTimetable_\(testClass)")
+        UserDefaults.standard.removeObject(forKey: "subjectSelections_\(testClass)")
     }
 
 }

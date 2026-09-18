@@ -10,7 +10,7 @@ import SwiftUI
 struct TimetableView: View {
     @ObservedObject var timetablesCache = TimetablesCache.shared
     
-    @State private var subjectSelections: [String: String] = [:]
+    @State private var subjectSelections: [String: String] = UserSession.shared.user?.loadSubjectSelections() ?? [:]
     
     init(isPreview: Bool = false) {
         if isPreview {

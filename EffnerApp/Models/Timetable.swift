@@ -8,20 +8,20 @@
 import Foundation
 
 // MARK: - SSB Timetable Response
-struct TimetableResponse: Decodable {
+struct TimetableResponse: Codable {
     let className: String
     let fetchedAt: String
     let slots: [TimetableSlot]
 }
 
 // MARK: - Subject
-struct Subject: Decodable {
+struct Subject: Codable {
     let name: String
     let color: String
 }
 
 // MARK: - Timetable Slot
-struct TimetableSlot: Decodable {
+struct TimetableSlot: Codable {
     let timeStart: String
     let timeEnd: String
     let monday: [Subject]

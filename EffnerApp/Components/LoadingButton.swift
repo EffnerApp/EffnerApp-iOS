@@ -23,13 +23,13 @@ struct LoadingButtonStyle: ButtonStyle {
 
             configuration.label
         }
-        .opacity(configuration.isPressed ? 0.2 : 1)
+        .opacity(configuration.isPressed ? 0.2 : (isEnabled ? 1.0 : 0.6))
         .animation(.default, value: isEnabled)
         .animation(.default, value: isLoading)
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.accentColor)
-        .foregroundColor(.white)
+        .background(isEnabled ? Color.accentColor : Color.gray.opacity(0.3))
+        .foregroundColor(isEnabled ? .white : Color(.systemGray))
         .cornerRadius(8)
     }
 }

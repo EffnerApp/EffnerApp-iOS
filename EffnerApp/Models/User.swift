@@ -94,15 +94,16 @@ class UserSession: ObservableObject {
     
     // Helper method to update multiple classes
     func updateUserKlasses(_ newKlasses: [String]) {
+        let validKlasses = newKlasses.filter { $0.isValidClassName }
         let oldKlasses = user!.klasses
         
-        if oldKlasses != newKlasses {
-            user!.klasses = newKlasses
+        if oldKlasses != validKlasses {
+            user!.klasses = validKlasses
             user!.saveKlasses()
             
             Task {
                 if await NotificationService.shared.isEnabled {
-                    _ = await NotificationService.shared.updateKlasses(klasses: newKlasses)
+                    _ = await NotificationService.shared.updateKlasses(klasses: validKlasses)
                 }
             }
         }
@@ -114,7 +115,7 @@ class UserSession: ObservableObject {
         let ssbCred: KeyChainItem? = KeyChainUtil.loadFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb")
         
         // UserDefaults for userKlasses
-        let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")
+        let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")?.filter { $0.isValidClassName }
         guard let klasses = klasses else {
             Self.logger.info("No Klasses found in UserDefaults.")
             return nil

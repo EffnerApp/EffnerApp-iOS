@@ -17,8 +17,27 @@ struct LoginView: View {
     
     @State private var accountId: String = ""
     @State private var password: String = ""
-    @State private var selectedOption: String = "null"
-    @State private var pickerOptions = ["null"]
+    @State private var selectedOption: String = ""
+    
+    private var isClassSelectionValid: Bool {
+        !selectedOption.isEmpty &&
+        selectedOption.isValidClassName &&
+        classes.cachedClasses.contains(selectedOption)
+    }
+
+    private var isLoginDisabled: Bool {
+        accountId.trimmingCharacters(in: .whitespaces).isEmpty ||
+        password.isEmpty ||
+        !isClassSelectionValid
+    }
+
+    private func updateSelectedOptionIfNeeded() {
+        if !classes.cachedClasses.isEmpty {
+            if selectedOption.isEmpty || !classes.cachedClasses.contains(selectedOption) {
+                selectedOption = classes.cachedClasses.first ?? ""
+            }
+        }
+    }
     
     @AppStorage("hasSeenOnBoarding") private var hasSeenOnBoarding = false
     @State private var showingLegalInfo = false
@@ -97,15 +116,41 @@ struct LoginView: View {
                         .font(.title3)
                     HStack {
                         Spacer()
-                        Picker(selection: $selectedOption, label: Text("Klasse")) {
-                            ForEach(pickerOptions, id: \ .self) { option in
-                                Text(option)
+                        if classes.cachedClasses.isEmpty {
+                            HStack(spacing: 8) {
+                                if classes.hasError {
+                                    Text("Fehler beim Laden")
+                                        .foregroundColor(.red)
+                                        .font(.subheadline)
+                                    Button("Erneut versuchen") {
+                                        Task {
+                                            await classes.refreshCache()
+                                            updateSelectedOptionIfNeeded()
+                                        }
+                                    }
+                                    .font(.footnote)
+                                } else {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("Klassen werden geladen...")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
                             }
+                            .padding(10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        } else {
+                            Picker(selection: $selectedOption, label: Text("Klasse")) {
+                                ForEach(classes.cachedClasses, id: \.self) { option in
+                                    Text(option).tag(option)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            .padding(10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
                         }
-                        .pickerStyle(MenuPickerStyle())
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
                         Spacer()
                     }
                 }
@@ -134,7 +179,8 @@ struct LoginView: View {
                 }, label: {
                     Text("Anmeldung")
                 })
-                    .padding(.top, 8)
+                .disabled(isLoginDisabled)
+                .padding(.top, 8)
                 Spacer()
                 Button(action: {
                     showingLegalInfo = true
@@ -165,9 +211,13 @@ struct LoginView: View {
             OnBoardingView()
         }
         .onAppear {
+            updateSelectedOptionIfNeeded()
             if !hasSeenOnBoarding {
                 showingOnBoarding = true
             }
+        }
+        .onChange(of: classes.cachedClasses) {
+            updateSelectedOptionIfNeeded()
         }
         .navigationTitle("Anmelden")
         .toolbarTitleDisplayMode(.inlineLarge)
@@ -183,16 +233,14 @@ struct LoginView: View {
         }
         .task {
             await classes.refreshCache()
-            
-            pickerOptions = classes.cachedClasses.isEmpty ? pickerOptions : classes.cachedClasses
-            selectedOption = classes.cachedClasses.first ?? "null"
+            updateSelectedOptionIfNeeded()
         }
     }
 }
 
 #Preview {
     let mockCache = ClassesCache()
-    mockCache.saveClasses(["5a", "5b", "6a", "6b", "7a", "7b"])
+    mockCache.saveClasses(["5A", "5B", "6A", "6B", "7A", "7B"])
     return LoginView()
         .environmentObject(mockCache)
 }

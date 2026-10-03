@@ -15,7 +15,7 @@ class ClassesCache: BaseCache<[String]> {
     
     // Convenience accessor für bessere Lesbarkeit
     var cachedClasses: [String] {
-        cachedResponse ?? []
+        cachedResponse?.filter { $0.isValidClassName } ?? []
     }
     
     // Überschreiben von hasError, um auch leere Daten als Error zu behandeln
@@ -32,7 +32,8 @@ class ClassesCache: BaseCache<[String]> {
     
     // Convenience-Methode für bessere API
     public func saveClasses(_ classes: [String]) {
-        saveResponse(classes)
+        let validClasses = classes.filter { $0.isValidClassName }
+        saveResponse(validClasses)
     }
 
     // Implementation der Cache-Refresh-Logik
@@ -50,5 +51,17 @@ class ClassesCache: BaseCache<[String]> {
             await setError()
             Self.logger.error("Failed to refresh cache: \(error.localizedDescription)")
         }
+    }
+}
+
+extension String {
+    /// Prüft, ob ein Klassenname gültig ist:
+    /// 1-2 Ziffern gefolgt von 1-2 Großbuchstaben (z. B. 5A, 10B, 11CL, 12Q)
+    /// oder Q-Stufen-Format (z. B. 12Q4, 13Q1).
+    var isValidClassName: Bool {
+        let trimmed = trimmingCharacters(in: .whitespaces)
+        guard trimmed.count <= 4 else { return false }
+        let pattern = #"^[0-9]{1,2}(?:[A-Z]{1,2}|[A-Z][0-9])$"#
+        return trimmed.range(of: pattern, options: .regularExpression) != nil
     }
 }

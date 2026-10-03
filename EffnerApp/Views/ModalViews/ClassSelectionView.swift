@@ -73,7 +73,7 @@ struct ClassSelectionView: View {
         .onAppear {
             // Initialize with current selection
             if let userKlasses = session.user?.klasses, !userKlasses.isEmpty {
-                selectedClasses = userKlasses
+                selectedClasses = userKlasses.filter { $0.isValidClassName }
             }
             updateExtraordinaryClasses()
         }
@@ -82,7 +82,7 @@ struct ClassSelectionView: View {
         }
         .onDisappear {
             // Trigger final update to refresh caches when leaving the view
-            session.updateUserKlasses(selectedClasses)
+            session.updateUserKlasses(selectedClasses.filter { $0.isValidClassName })
         }
     }
     
@@ -92,7 +92,7 @@ struct ClassSelectionView: View {
         let serverClasses = Set(classesCache.cachedClasses)
         let userKlasses = session.user?.klasses ?? []
         var seen = Set<String>()
-        extraordinaryClasses = userKlasses.filter { !serverClasses.contains($0) && seen.insert($0).inserted }
+        extraordinaryClasses = userKlasses.filter { !serverClasses.contains($0) && $0.isValidClassName && seen.insert($0).inserted }
     }
     
     private func toggleClassSelection(_ className: String) {

@@ -18,9 +18,15 @@ class AuthService : ObservableObject {
     }
     
     func register(username: String, password: String, klasses: [String]) async -> Result<User, NetworkError> {
+        let validKlasses = klasses.filter { $0.isValidClassName }
+        guard !validKlasses.isEmpty else {
+            let error = NetworkError.clientError(statusCode: 400, msg: "Keine gültige Klasse ausgewählt.")
+            self.error = error
+            return .failure(error)
+        }
         let auth = Authentication.ssbBasic(username: username, password: password)
         let deviceToken = await NotificationService.shared.deviceToken
-        let ssbUserRequest = SSBUserRequest(deviceToken: deviceToken, classes: klasses)
+        let ssbUserRequest = SSBUserRequest(deviceToken: deviceToken, classes: validKlasses)
         
         do {
             let ssbUserResponse: SSBUserResponse = try await networkManager.fetch(
@@ -37,7 +43,7 @@ class AuthService : ObservableObject {
                 ssbToken: ssbToken,
                 username: username,
                 password: password,
-                klasses: klasses,
+                klasses: validKlasses,
                 isAuthorized: true,
                 deviceToken: ssbUserResponse.deviceToken
             )

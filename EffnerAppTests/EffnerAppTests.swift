@@ -130,4 +130,35 @@ struct EffnerAppTests {
         UserDefaults.standard.removeObject(forKey: "subjectSelections_\(testClass)")
     }
 
+    @Test func isPastExamTest() throws {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        // Feste Referenzzeit: 08.10.2026 um 14:30 Uhr (mitten am Tag)
+        let referenceToday = try #require(formatter.date(from: "2026-10-08 14:30:00"))
+
+        // 1. Klausur heute (dateFrom: "2026-10-08", kein dateTo) -> darf am Tag der Klausur noch nicht vergangen sein
+        let examToday = Exam(dateFrom: "2026-10-08", description: "Mathe Schulaufgabe")
+        #expect(!ExamsView.isPastExam(examToday, today: referenceToday), "Klausur am heutigen Tag darf nicht als vergangen gelten")
+
+        // 2. Klausur gestern (dateFrom: "2026-10-07") -> muss vergangen sein
+        let examYesterday = Exam(dateFrom: "2026-10-07", description: "Deutsch Schulaufgabe")
+        #expect(ExamsView.isPastExam(examYesterday, today: referenceToday), "Klausur von gestern muss als vergangen gelten")
+
+        // 3. Klausur morgen (dateFrom: "2026-10-09") -> darf nicht vergangen sein
+        let examTomorrow = Exam(dateFrom: "2026-10-09", description: "Englisch Schulaufgabe")
+        #expect(!ExamsView.isPastExam(examTomorrow, today: referenceToday), "Klausur von morgen darf nicht als vergangen gelten")
+
+        // 4. Mehrtägiger Zeitraum, der heute noch läuft (dateFrom: "2026-10-05", dateTo: "2026-10-08") -> darf nicht vergangen sein
+        let examMultiDayActive = Exam(dateFrom: "2026-10-05", dateTo: "2026-10-08", description: "Klausurenwoche")
+        #expect(!ExamsView.isPastExam(examMultiDayActive, today: referenceToday), "Mehrtägige Klausur, die heute endet, darf nicht als vergangen gelten")
+
+        // 5. Mehrtägiger Zeitraum, der gestern endete (dateFrom: "2026-10-01", dateTo: "2026-10-07") -> muss vergangen sein
+        let examMultiDayPast = Exam(dateFrom: "2026-10-01", dateTo: "2026-10-07", description: "Weihnachtsfrieden")
+        #expect(ExamsView.isPastExam(examMultiDayPast, today: referenceToday), "Mehrtägige Klausur, die vor heute endete, muss als vergangen gelten")
+
+        // 6. Mehrtägiger Zeitraum in der Zukunft (dateFrom: "2026-10-10", dateTo: "2026-10-15") -> darf nicht vergangen sein
+        let examMultiDayFuture = Exam(dateFrom: "2026-10-10", dateTo: "2026-10-15", description: "Projektwoche")
+        #expect(!ExamsView.isPastExam(examMultiDayFuture, today: referenceToday), "Zukünftige mehrtägige Klausur darf nicht als vergangen gelten")
+    }
+
 }

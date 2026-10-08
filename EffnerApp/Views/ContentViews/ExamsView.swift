@@ -30,7 +30,7 @@ struct ExamsView: View {
                 if let examResponse = examsCache.cachedExamResponse {
                     List {
                         Section(header: SeparatorView()) {
-                            ForEach(examResponse.exams.filter { isPastExam($0) }, id: \.id) { exam in
+                            ForEach(examResponse.exams.filter { Self.isPastExam($0) }, id: \.id) { exam in
                                 ExamRowView(exam: exam)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
@@ -38,7 +38,7 @@ struct ExamsView: View {
                         .id("pastExams")
                         
                         Section(header: SeparatorView(isPast: false)) {
-                            ForEach(examResponse.exams.filter { !isPastExam($0) }, id: \.id) { exam in
+                            ForEach(examResponse.exams.filter { !Self.isPastExam($0) }, id: \.id) { exam in
                                 ExamRowView(exam: exam)
                                     .listRowBackground(Color(UIColor.secondarySystemBackground))
                             }
@@ -55,14 +55,11 @@ struct ExamsView: View {
         )
     }
 
-    private func isPastExam(_ exam: Exam) -> Bool {
-        let isoFormatter = DateFormatter()
-        isoFormatter.dateFormat = "yyyy-MM-dd"
-
-        if let examDate = isoFormatter.date(from: exam.dateFrom) {
-            return examDate < Date()
-        }
-        return false
+    static func isPastExam(_ exam: Exam, today: Date = Date()) -> Bool {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        guard let date = formatter.date(from: exam.dateTo ?? exam.dateFrom) else { return false }
+        return Calendar.current.startOfDay(for: date) < Calendar.current.startOfDay(for: today)
     }
 }
 

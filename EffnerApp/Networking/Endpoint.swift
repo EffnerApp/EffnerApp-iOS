@@ -27,7 +27,7 @@ extension Endpoint {
         
         if let auth = authentication {
             switch auth.type {
-            case .effner, .ssbBasic:
+            case .ssbBasic:
                 allHeaders["Authorization"] = "Basic \(auth.credential)"
                 allHeaders["X-Time"] = auth.time
             case .ssbToken:

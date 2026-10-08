@@ -9,7 +9,7 @@ import Testing
 import Foundation
 @testable import EffnerApp
 
-@Suite("Effner App Tests")
+@Suite("Effner App Tests", .serialized)
 struct EffnerAppTests {
     
     // Dummy Login-Daten für Tests
@@ -58,21 +58,21 @@ struct EffnerAppTests {
 
     @Test func extraordinaryClassesTest() async throws {
         let serverClasses = ["5A", "6B", "7C"]
-        let userKlasses = ["5A", "OldClass1", "OldClass2"]
+        let userKlasses = ["5A", "10A", "10B"]
         
         let serverSet = Set(serverClasses)
         let extraordinary = userKlasses.filter { !serverSet.contains($0) }
         
-        #expect(extraordinary == ["OldClass1", "OldClass2"], "Klassen, die nicht vom Server geliefert werden, sollten als außergewöhnlich erkannt werden")
+        #expect(extraordinary == ["10A", "10B"], "Klassen, die nicht vom Server geliefert werden, sollten als außergewöhnlich erkannt werden")
         
         // Simuliere Abwählen einer außergewöhnlichen Klasse
         var selectedClasses = userKlasses
-        if let index = selectedClasses.firstIndex(of: "OldClass1"), selectedClasses.count > 1 {
+        if let index = selectedClasses.firstIndex(of: "10A"), selectedClasses.count > 1 {
             selectedClasses.remove(at: index)
         }
         
-        #expect(!selectedClasses.contains("OldClass1"), "OldClass1 sollte abgewählt worden sein")
-        #expect(selectedClasses.contains("OldClass2"), "OldClass2 sollte noch ausgewählt sein")
+        #expect(!selectedClasses.contains("10A"), "10A sollte abgewählt worden sein")
+        #expect(selectedClasses.contains("10B"), "10B sollte noch ausgewählt sein")
         #expect(selectedClasses.contains("5A"), "5A sollte noch ausgewählt sein")
         
         // Simuliere Speichern im User
@@ -83,7 +83,7 @@ struct EffnerAppTests {
         let updatedUser = await MainActor.run {
             UserSession.shared.user
         }
-        #expect(updatedUser?.klasses == ["5A", "OldClass2"], "User klasses sollten aktualisiert sein")
+        #expect(updatedUser?.klasses == ["5A", "10B"], "User klasses sollten aktualisiert sein")
     }
 
     @Test func timetableStorageAndSelectionsTest() async throws {

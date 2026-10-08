@@ -6,10 +6,8 @@
 //
 
 import Foundation
-import CommonCrypto
 
 enum AuthenticationType: Codable {
-    case effner  // Original SHA512-based authentication
     case ssbBasic  // HTTP Basic authentication for SSB backend
     case ssbToken  // Token-based authentication for SSB backend
 }
@@ -19,22 +17,6 @@ struct Authentication: Codable {
     let username: String?
     let credential: String
     let type: AuthenticationType
-}
-
-// MARK: - Original Custom Authentication
-extension Authentication {
-    init(user: User) {
-        self.init(username: user.username, password: user.password)
-    }
-    
-    init(username: String, password: String) {
-        let currentTime = String(Int(Date().timeIntervalSince1970 * 1000))
-        time = currentTime
-        let credentials = "\(username):\(password):\(currentTime)"
-        self.username = ""
-        self.credential = sha512(string: credentials)
-        self.type = .effner
-    }
 }
 
 // MARK: - SSB Basic Authentication
@@ -73,13 +55,4 @@ extension Authentication {
         )
     }
 
-}
-
-private func sha512(string: String) -> String {
-    guard let data = string.data(using: .utf8) else { return "" }
-    var hash = [UInt8](repeating: 0, count: Int(CC_SHA512_DIGEST_LENGTH))
-    data.withUnsafeBytes {
-        _ = CC_SHA512($0.baseAddress, CC_LONG(data.count), &hash)
-    }
-    return hash.map { String(format: "%02x", $0) }.joined()
 }

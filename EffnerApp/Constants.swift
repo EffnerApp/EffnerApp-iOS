@@ -9,8 +9,6 @@ struct Constants {
     static let bundleIdentifier = "de.effnerapp.effner"
     
     // API Base URL
-    static let baseURL : String = "https://api.effner.app/v3"
-    static let v4URL: String = "https://api.effner.app/v4"
     // TODO: Vor Release ssbURL auf HTTPS umstellen und NSAllowsArbitraryLoads in Info.plist entfernen
     static let ssbURL: String = "https://api5.effner.app/api"
 }

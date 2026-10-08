@@ -172,10 +172,6 @@ struct User: Codable {
         return klasses.first
     }
     
-    func generateAuth() -> Authentication {
-        return Authentication(user: self)
-    }
-    
     func generateSSBBasicAuth() -> Authentication {
         return Authentication.ssbBasic(username: username, password: password)
     }

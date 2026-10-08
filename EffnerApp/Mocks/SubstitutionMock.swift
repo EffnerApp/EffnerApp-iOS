@@ -27,7 +27,7 @@ struct MockSubstitution {
                 ],
                 substitutions: [
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Müller",
                         substitute: "Schmidt",
                         period: "1",
@@ -35,7 +35,7 @@ struct MockSubstitution {
                         info: "Mathematik statt Deutsch"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "13Q1",
                         teacher: "Meyer",
                         substitute: "Fischer",
                         period: "2",
@@ -43,7 +43,7 @@ struct MockSubstitution {
                         info: "Selbststudium"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Weber",
                         substitute: nil,
                         period: "3",
@@ -51,7 +51,7 @@ struct MockSubstitution {
                         info: "Entfall"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "13Q2",
                         teacher: "Schulz",
                         substitute: "Wagner",
                         period: "4",
@@ -59,10 +59,10 @@ struct MockSubstitution {
                         info: "Englisch - Raumwechsel"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Koch",
                         substitute: "Becker",
-                        period: "55",
+                        period: "5",
                         room: "A104",
                         info: "Physik"
                     )
@@ -86,7 +86,7 @@ struct MockSubstitution {
                 ],
                 substitutions: [
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Müller",
                         substitute: "Schmidt",
                         period: "1",
@@ -94,7 +94,7 @@ struct MockSubstitution {
                         info: "Mathematik statt Deutsch"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "13Q1",
                         teacher: "Meyer",
                         substitute: "Fischer",
                         period: "2",
@@ -102,7 +102,7 @@ struct MockSubstitution {
                         info: "Selbststudium"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Weber",
                         substitute: nil,
                         period: "3",
@@ -110,7 +110,7 @@ struct MockSubstitution {
                         info: "Entfall"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "13Q2",
                         teacher: "Schulz",
                         substitute: "Wagner",
                         period: "4",
@@ -118,7 +118,7 @@ struct MockSubstitution {
                         info: "Englisch - Raumwechsel"
                     ),
                     Substitution(
-                        klassName: "13Q3",
+                        klassName: "test",
                         teacher: "Koch",
                         substitute: "Becker",
                         period: "5",

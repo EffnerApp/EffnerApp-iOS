@@ -161,10 +161,15 @@ struct SubstitutionDayContent: View {
                         Text("Vertretungen")
                             .font(.headline)
                         
-                        ForEach(Array(plan.substitutions.enumerated()), id: \.element.id) { index, substitution in
+                        // Sorted by Period then by Klass
+                        let sortedSubstitutions = plan.substitutions.sorted {
+                            (Int($0.period) ?? 0, $0.klassName) < (Int($1.period) ?? 0, $1.klassName)
+                        }
+                        
+                        ForEach(Array(sortedSubstitutions.enumerated()), id: \.element.id) { index, substitution in
                             SubstitutionRowView(
                                 substitution: substitution,
-                                isLast: index == plan.substitutions.count - 1
+                                isLast: index == sortedSubstitutions.count - 1
                             )
                         }
                     }
@@ -232,6 +237,7 @@ struct SubstitutionRowView: View {
                     }
                 }
                 
+                // Unterklasse
                 if(substitution.klassName != session.user?.klasses.first) {
                     Spacer()
                     Text("\(substitution.klassName)")

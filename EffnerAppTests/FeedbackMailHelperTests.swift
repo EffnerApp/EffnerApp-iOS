@@ -9,6 +9,7 @@ import Testing
 import Foundation
 @testable import EffnerApp
 
+extension EffnerTestSuite {
 @Suite("Feedback Mail Helper Tests")
 struct FeedbackMailHelperTests {
 
@@ -64,4 +65,5 @@ struct FeedbackMailHelperTests {
         #expect(body.contains("Status: Nicht angemeldet"))
         #expect(body.contains("Uhrzeit:"))
     }
+}
 }

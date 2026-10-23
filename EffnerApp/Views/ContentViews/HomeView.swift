@@ -25,7 +25,6 @@ struct HomeView: View {
     @State private var showHolidaysView = false
     @State private var showCampusCafeView = false
     @State private var showNotificationPromptView = false
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
     var body: some View {
         BaseContentView(
@@ -64,8 +63,11 @@ struct HomeView: View {
             }) {
                 HomeNotificationPromptView()
             }
-            .onReceive(timer) { date in
-                currentTime = date
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(60))
+                    currentTime = Date()
+                }
             }
             .onAppear {
                 if !hasSeenHomeNotificationPrompt {

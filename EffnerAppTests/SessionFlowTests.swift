@@ -50,6 +50,7 @@ final class MockURLProtocol: URLProtocol {
     override func stopLoading() {}
 }
 
+extension EffnerTestSuite {
 @Suite("Session & Login Lifecycle Flows", .serialized)
 struct SessionFlowTests {
     
@@ -465,4 +466,5 @@ struct SessionFlowTests {
         }
         #expect(syncPutRequests.count == 1)
     }
+}
 }

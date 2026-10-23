@@ -9,8 +9,9 @@ import Testing
 import Foundation
 @testable import EffnerApp
 
-@Suite("Effner App Tests", .serialized)
-struct EffnerAppTests {
+extension EffnerTestSuite {
+    @Suite("Effner App Tests")
+    struct EffnerAppTests {
     
     // Dummy Login-Daten für Tests
     static let username = "username"
@@ -76,8 +77,9 @@ struct EffnerAppTests {
         #expect(selectedClasses.contains("5A"), "5A sollte noch ausgewählt sein")
         
         // Simuliere Speichern im User
+        let classesToSave = selectedClasses
         await MainActor.run {
-            UserSession.shared.updateUserKlasses(selectedClasses)
+            UserSession.shared.updateUserKlasses(classesToSave)
         }
         
         let updatedUser = await MainActor.run {
@@ -160,5 +162,6 @@ struct EffnerAppTests {
         let examMultiDayFuture = Exam(dateFrom: "2026-10-10", dateTo: "2026-10-15", description: "Projektwoche")
         #expect(!ExamsView.isPastExam(examMultiDayFuture, today: referenceToday), "Zukünftige mehrtägige Klausur darf nicht als vergangen gelten")
     }
-
+    
+    }
 }

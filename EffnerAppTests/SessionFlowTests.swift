@@ -121,6 +121,18 @@ struct SessionFlowTests {
         #expect(createRequests.count == 1)
         let req = try #require(createRequests.first)
         #expect(req.value(forHTTPHeaderField: "Authorization")?.starts(with: "Basic ") == true)
+        if let bodyData = req.httpBody,
+           let json = try? JSONSerialization.jsonObject(with: bodyData) as? [String: Any] {
+            #expect(json["platform"] as? String == "APN")
+        }
+        
+        // 1b. UpdateDeviceTokenEndpoint sendet ebenfalls hart platform: "APN"
+        let updateEndpoint = UpdateDeviceTokenEndpoint(deviceToken: "apns-token-xyz")
+        let updateReq = try updateEndpoint.urlRequest()
+        let updateBodyData = try #require(updateReq.httpBody)
+        let updateJson = try #require(try JSONSerialization.jsonObject(with: updateBodyData) as? [String: Any])
+        #expect(updateJson["deviceToken"] as? String == "apns-token-xyz")
+        #expect(updateJson["platform"] as? String == "APN")
         
         // 2. Session-Zustand prüfen
         let user = try result.get()

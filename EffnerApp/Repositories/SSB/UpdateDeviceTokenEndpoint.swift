@@ -35,7 +35,10 @@ struct UpdateDeviceTokenEndpoint: Endpoint {
     }
     
     var body: Encodable? {
-        return ["deviceToken": deviceToken]
+        return [
+            "deviceToken": deviceToken,
+            "platform": "APN"
+        ]
     }
     
 }

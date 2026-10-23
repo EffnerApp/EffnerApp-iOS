@@ -36,7 +36,7 @@ struct LegalInfoView: View {
                     
                     // Kontakt Section
                     Section {
-                        Link(destination: URL(string: "mailto:support@effner.app")!) {
+                        Link(destination: FeedbackMailHelper.feedbackURL()) {
                             Label("Feedback", systemImage: "envelope")
                         }
                         

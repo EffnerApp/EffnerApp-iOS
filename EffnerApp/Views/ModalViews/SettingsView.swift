@@ -90,7 +90,7 @@ struct SettingsView: View {
                     
                     // Über Section
                     Section {
-                        Link(destination: URL(string: "mailto:support@effner.app")!) {
+                        Link(destination: FeedbackMailHelper.feedbackURL(user: session.user)) {
                             Label("Feedback", systemImage: "envelope")
                         }
                         

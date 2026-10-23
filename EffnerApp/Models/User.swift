@@ -28,8 +28,16 @@ class UserSession: ObservableObject {
     }
     
     private init() {
+        NotificationCenter.default.addObserver(forName: .userUnauthorized, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                guard self.user != nil else { return }
+                await self.logout(deleteRemoteUser: false)
+            }
+        }
+        
         // Initialize the UserSessions
-        user = loadUserFromStorage();
+        user = loadUserFromStorage()
         
         guard let user else {
             Self.logger.info("No user found in storage.")
@@ -38,33 +46,42 @@ class UserSession: ObservableObject {
         }
         
         Task { @MainActor in
-            let isAuthorized = await AuthService().authorize(user: user)
-            switch isAuthorized {
-            case .success(let response):
-                Self.logger.info("User is authorized.")
-                self.user?.isAuthorized = true
-                self.user?.deviceToken = response.deviceToken
-                
-                if let serverToken = response.deviceToken {
-                    UserDefaults.standard.set(serverToken, forKey: "userDeviceToken")
-                    UserDefaults.standard.set(true, forKey: "notificationsEnabled")
-                    NotificationService.shared.deviceToken = serverToken
-                    await NotificationService.shared.checkAuthorizationStatus()
-                } else {
-                    UserDefaults.standard.removeObject(forKey: "userDeviceToken")
-                    UserDefaults.standard.set(false, forKey: "notificationsEnabled")
-                    NotificationService.shared.deviceToken = nil
-                    NotificationService.shared.isEnabled = false
-                }
-            case .failure(let error):
-                Self.logger.error("Authorization failed with error: \(error)")
-                self.user = nil
-            }
-            self.isCheckingAuthorization = false
-            
-            // notify caches
-            objectWillChange.send()
+            await verifyStoredSession(for: user)
         }
+    }
+    
+    @MainActor
+    func verifyStoredSession(for user: User, authService: AuthService = AuthService()) async {
+        let isAuthorized = await authService.authorize(user: user)
+        switch isAuthorized {
+        case .success(let response):
+            Self.logger.info("User is authorized.")
+            self.user?.isAuthorized = true
+            self.user?.deviceToken = response.deviceToken
+            
+            if let serverToken = response.deviceToken {
+                UserDefaults.standard.set(serverToken, forKey: "userDeviceToken")
+                UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+                NotificationService.shared.deviceToken = serverToken
+                await NotificationService.shared.checkAuthorizationStatus()
+            } else {
+                UserDefaults.standard.removeObject(forKey: "userDeviceToken")
+                UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+                NotificationService.shared.deviceToken = nil
+                NotificationService.shared.isEnabled = false
+            }
+        case .failure(let error):
+            Self.logger.error("Authorization failed with error: \(error)")
+            if case .clientError(_, let statusCode, _) = error, [401, 403, 404].contains(statusCode) {
+                await logout(deleteRemoteUser: false)
+            } else {
+                Self.logger.warning("Network issue during auth check. Retaining offline session.")
+            }
+        }
+        self.isCheckingAuthorization = false
+        
+        // notify caches
+        objectWillChange.send()
     }
     
     @MainActor
@@ -79,13 +96,15 @@ class UserSession: ObservableObject {
     // Helper method to set the primary class (moves it to the first position)
     @MainActor
     func setPrimaryClass(_ className: String) {
+        guard className.isValidClassName, var currentUser = user else { return }
         // Remove the class from its current position and add it to the front
-        var updatedKlasses = user!.klasses.filter { $0 != className }
+        var updatedKlasses = currentUser.klasses.filter { $0 != className }
         updatedKlasses.insert(className, at: 0)
         
-        if user!.klasses != updatedKlasses {
-            user!.klasses = updatedKlasses
-            user!.saveKlasses()
+        if currentUser.klasses != updatedKlasses {
+            currentUser.klasses = updatedKlasses
+            currentUser.saveKlasses()
+            user = currentUser
         }
         
         // notify the caches
@@ -95,11 +114,13 @@ class UserSession: ObservableObject {
     // Helper method to update multiple classes
     func updateUserKlasses(_ newKlasses: [String]) {
         let validKlasses = newKlasses.filter { $0.isValidClassName }
-        let oldKlasses = user!.klasses
+        guard !validKlasses.isEmpty, var currentUser = user else { return }
+        let oldKlasses = currentUser.klasses
         
         if oldKlasses != validKlasses {
-            user!.klasses = validKlasses
-            user!.saveKlasses()
+            currentUser.klasses = validKlasses
+            currentUser.saveKlasses()
+            user = currentUser
             
             Task {
                 if await NotificationService.shared.isEnabled {
@@ -109,6 +130,19 @@ class UserSession: ObservableObject {
         }
     }
     
+    static func clearLocalStorage(additionalKlasses: [String] = []) {
+        let storedKlasses = UserDefaults.standard.stringArray(forKey: "userKlasses") ?? []
+        for klass in Set(storedKlasses + additionalKlasses) {
+            UserDefaults.standard.removeObject(forKey: "subjectSelections_\(klass)")
+            UserDefaults.standard.removeObject(forKey: "cachedTimetable_\(klass)")
+        }
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier)
+        KeyChainUtil.deleteFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb")
+        UserDefaults.standard.removeObject(forKey: "userKlasses")
+        UserDefaults.standard.removeObject(forKey: "userDeviceToken")
+        UserDefaults.standard.set(false, forKey: "notificationsEnabled")
+    }
+    
     func loadUserFromStorage() -> User? {
         // Keychain query for id and password
         let cred: KeyChainItem? = KeyChainUtil.loadFromKeyChain(serviceName: Constants.bundleIdentifier)
@@ -116,8 +150,12 @@ class UserSession: ObservableObject {
         
         // UserDefaults for userKlasses
         let klasses = UserDefaults.standard.stringArray(forKey: "userKlasses")?.filter { $0.isValidClassName }
-        guard let klasses = klasses else {
-            Self.logger.info("No Klasses found in UserDefaults.")
+        guard let cred, !cred.key.isEmpty, !cred.value.isEmpty,
+              let ssbCred, !ssbCred.key.isEmpty, !ssbCred.value.isEmpty,
+              UUID(uuidString: ssbCred.key) != nil,
+              let klasses = klasses, !klasses.isEmpty else {
+            Self.logger.info("Incomplete or corrupted credentials in storage. Purging.")
+            Self.clearLocalStorage()
             return nil
         }
         
@@ -125,10 +163,10 @@ class UserSession: ObservableObject {
         
         // Set user
         return User(
-            ssbId: ssbCred?.key ?? "",
-            ssbToken: ssbCred?.value ?? "",
-            username: cred?.key ?? "",
-            password: cred?.value ?? "",
+            ssbId: ssbCred.key,
+            ssbToken: ssbCred.value,
+            username: cred.key,
+            password: cred.value,
             klasses: klasses,
             isAuthorized: true,
             deviceToken: savedDeviceToken
@@ -136,16 +174,16 @@ class UserSession: ObservableObject {
     }
     
     @MainActor
-    func logout() async {
+    func logout(deleteRemoteUser: Bool = true) async {
         // Delete user on backend while session is still active
-        _ = await NotificationService.shared.deleteUser()
+        if deleteRemoteUser, user != nil {
+            _ = await NotificationService.shared.deleteUser()
+        }
         NotificationService.shared.isEnabled = false
-        UserDefaults.standard.set(false, forKey: "notificationsEnabled")
-        UserDefaults.standard.removeObject(forKey: "userDeviceToken")
+        NotificationService.shared.deviceToken = nil
         
         // Now clear credentials and user session
-        user?.clearCredentials()
-        user?.clearSSBCredentials()
+        Self.clearLocalStorage(additionalKlasses: user?.klasses ?? [])
         user = nil
         TimetablesCache.shared.clearCache()
         Self.logger.info("User logged out and credentials cleared.")

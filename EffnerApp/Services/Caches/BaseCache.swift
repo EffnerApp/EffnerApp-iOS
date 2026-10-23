@@ -90,6 +90,13 @@ class BaseCache<ResponseType>: ObservableObject, CacheProtocol {
         return user.isAuthorized
     }
     
+    /// Prüft, ob eine gültige primäre Klasse (oder der Mock-Modus) vorliegt
+    func hasValidPrimaryClass() -> Bool {
+        if shouldUseMockData() { return true }
+        guard let primaryClass = UserSession.shared.user?.primaryClass else { return false }
+        return primaryClass.isValidClassName
+    }
+    
     /// Setzt Loading-State
     func setLoading() async {
         await MainActor.run { [weak self] in

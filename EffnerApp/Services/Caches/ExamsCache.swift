@@ -30,7 +30,7 @@ class ExamsCache: BaseCache<ExamsResponse> {
     
     // Implementation der Cache-Refresh-Logik
     override public func refreshCache() async {
-        guard isUserAuthorized() else { return }
+        guard isUserAuthorized(), hasValidPrimaryClass() else { return }
         
         await setLoading()
         

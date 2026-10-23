@@ -52,7 +52,7 @@ class TimetablesCache: BaseCache<TimetableResponse> {
     
     // Implementation der Cache-Refresh-Logik
     override public func refreshCache() async {
-        guard isUserAuthorized() else { return }
+        guard isUserAuthorized(), hasValidPrimaryClass() else { return }
         
         // Gespeicherten Stundenplan für die aktive Klasse laden, falls vorhanden
         if let stored = UserSession.shared.user?.loadTimetable() {

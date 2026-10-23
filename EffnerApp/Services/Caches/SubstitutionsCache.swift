@@ -25,7 +25,7 @@ class SubstitutionsCache: BaseCache<SubstitutionResponse> {
     
     // Implementation der Cache-Refresh-Logik
     override public func refreshCache() async {
-        guard isUserAuthorized() else { return }
+        guard isUserAuthorized(), hasValidPrimaryClass() else { return }
         
         await setLoading()
         

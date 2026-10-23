@@ -13,7 +13,7 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var path: String {
-        "/exams/class/" + (UserSession.shared.user!.primaryClass ?? "")
+        "/exams/class/" + (UserSession.shared.user?.primaryClass ?? "")
     }
     
     var method: HTTPMethod {
@@ -21,7 +21,7 @@ struct ExamsEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

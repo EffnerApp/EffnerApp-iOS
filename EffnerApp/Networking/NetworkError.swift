@@ -30,10 +30,19 @@ extension NetworkError: LocalizedError {
             case .decodingFailed(_, let message):
                 return "Failed to decode the response data. Message: \(message)"
             case .clientError(_, let statusCode, let message):
-                return "Client error occurred. Status code: \(statusCode) Message: \(message)"
+                if statusCode == 401 || statusCode == 403 {
+                    return "Account ID oder Passwort ist nicht korrekt."
+                }
+                if statusCode == 429 {
+                    return "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut."
+                }
+                return message != "None" ? message : "Client error occurred. Status code: \(statusCode) Message: \(message)"
             case .serverError(_, let statusCode, let message):
-                return "Server error occurred. Status code: \(statusCode) Message: \(message)"
+                return message != "None" ? message : "Der Server ist momentan nicht erreichbar. Bitte versuche es später erneut. (\(statusCode))"
             case .unknownError(_, let statusCode, let message):
+                if statusCode == 0 {
+                    return "Keine Verbindung zum Server möglich. Bitte überprüfe deine Internetverbindung."
+                }
                 return "An unknown error occurred. Status code: \(statusCode) Message: \(message)"
         }
     }

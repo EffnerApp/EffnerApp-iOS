@@ -8,16 +8,20 @@
 import Foundation
 import OSLog
 
+extension Notification.Name {
+    static let userUnauthorized = Notification.Name("userUnauthorized")
+}
+
 protocol NetworkManaging {
     func fetch<T: Decodable>(from endpoint: Endpoint) async throws -> T
 }
 
 final class NetworkManager: NetworkManaging {
     private static let logger = Log.networking
-    static let shared = NetworkManager()
+    static var shared = NetworkManager()
     private let session: URLSession
     
-    private init(session: URLSession = .shared) {
+    init(session: URLSession = .shared) {
         self.session = session
     }
     
@@ -47,6 +51,10 @@ final class NetworkManager: NetworkManaging {
         case 200...299:
             return
         case 400...499:
+            if (response.statusCode == 401 || response.statusCode == 403),
+               request.value(forHTTPHeaderField: "X-User-Id") != nil {
+                NotificationCenter.default.post(name: .userUnauthorized, object: nil)
+            }
             throw NetworkError.clientError(req: request, statusCode: response.statusCode)
         case 500...599:
             throw NetworkError.serverError(req: request, statusCode: response.statusCode)

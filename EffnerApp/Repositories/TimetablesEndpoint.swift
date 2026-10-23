@@ -13,7 +13,7 @@ struct TimetablesEndpoint : Endpoint {
     }
     
     var path: String {
-        "/timetables/class/" + (UserSession.shared.user!.primaryClass ?? "")
+        "/timetables/class/" + (UserSession.shared.user?.primaryClass ?? "")
     }
     
     var method: HTTPMethod {
@@ -21,7 +21,7 @@ struct TimetablesEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

@@ -14,7 +14,7 @@ struct SubstitutionsEndpoint : Endpoint {
     }
     
     var path: String {
-        "/substitutions/class/" + (UserSession.shared.user!.primaryClass ?? "") + "/upcoming"
+        "/substitutions/class/" + (UserSession.shared.user?.primaryClass ?? "") + "/upcoming"
     }
     
     var method: HTTPMethod {
@@ -22,7 +22,7 @@ struct SubstitutionsEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

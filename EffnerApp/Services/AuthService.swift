@@ -48,6 +48,8 @@ class AuthService : ObservableObject {
                 deviceToken: ssbUserResponse.deviceToken
             )
             
+            UserSession.clearLocalStorage()
+            
             await MainActor.run {
                 UserSession.shared.setUser(user: user)
             }

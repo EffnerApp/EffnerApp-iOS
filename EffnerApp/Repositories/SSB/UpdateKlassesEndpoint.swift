@@ -22,7 +22,7 @@ struct UpdateKlassesEndpoint : Endpoint {
     }
     
     var path: String {
-        "/users/\(UserSession.shared.user!.ssbId)/classes"
+        "/users/\(UserSession.shared.user?.ssbId ?? "")/classes"
     }
     
     var method: HTTPMethod {
@@ -30,7 +30,7 @@ struct UpdateKlassesEndpoint : Endpoint {
     }
     
     var authentication: Authentication? {
-        UserSession.shared.user!.generateSSBTokenAuth()
+        UserSession.shared.user?.generateSSBTokenAuth()
     }
     
     var headers: [String : String]? {

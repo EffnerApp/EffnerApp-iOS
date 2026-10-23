@@ -14,6 +14,8 @@ struct LoginView: View {
     
     @State private var loginFailed = false
     @State private var errorMessage: String = ""
+    @State private var rateLimitSecondsRemaining: Int = 0
+    @State private var rateLimitTimerTask: Task<Void, Never>?
     
     @State private var accountId: String = ""
     @State private var password: String = ""
@@ -26,9 +28,27 @@ struct LoginView: View {
     }
 
     private var isLoginDisabled: Bool {
+        rateLimitSecondsRemaining > 0 ||
         accountId.trimmingCharacters(in: .whitespaces).isEmpty ||
         password.isEmpty ||
         !isClassSelectionValid
+    }
+
+    private func startRateLimitCountdown() {
+        rateLimitTimerTask?.cancel()
+        rateLimitSecondsRemaining = 60
+        rateLimitTimerTask = Task { @MainActor in
+            while rateLimitSecondsRemaining > 0 && !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled else { break }
+                rateLimitSecondsRemaining -= 1
+            }
+            if !Task.isCancelled {
+                withAnimation {
+                    loginFailed = false
+                }
+            }
+        }
     }
 
     private func updateSelectedOptionIfNeeded() {
@@ -175,9 +195,13 @@ struct LoginView: View {
                                 errorMessage = error.localizedDescription
                                 loginFailed = true
                             }
+                            if case .clientError(_, 429, _) = error {
+                                startRateLimitCountdown()
+                            }
                     }
                 }, label: {
-                    Text("Anmeldung")
+                    Text(rateLimitSecondsRemaining > 0 ? "Anmeldung • \(rateLimitSecondsRemaining)s" : "Anmeldung")
+                        .monospacedDigit()
                 })
                 .disabled(isLoginDisabled)
                 .padding(.top, 8)
@@ -215,6 +239,10 @@ struct LoginView: View {
             if !hasSeenOnBoarding {
                 showingOnBoarding = true
             }
+        }
+        .onDisappear {
+            rateLimitTimerTask?.cancel()
+            rateLimitTimerTask = nil
         }
         .onChange(of: classes.cachedClasses) {
             updateSelectedOptionIfNeeded()

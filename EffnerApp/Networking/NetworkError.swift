@@ -34,7 +34,7 @@ extension NetworkError: LocalizedError {
                     return "Account ID oder Passwort ist nicht korrekt."
                 }
                 if statusCode == 429 {
-                    return "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut."
+                    return "Du hast in der letzten Minute zu viele Anfragen gestellt. Bitte warte einen Moment, bevor du es erneut versuchst."
                 }
                 return message != "None" ? message : "Client error occurred. Status code: \(statusCode) Message: \(message)"
             case .serverError(_, let statusCode, let message):

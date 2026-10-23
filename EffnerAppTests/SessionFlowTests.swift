@@ -201,6 +201,20 @@ struct SessionFlowTests {
         } else {
             Issue.record("Login mit 401 hätte fehlschlagen müssen")
         }
+        
+        // Fall C: 429 Too Many Requests beim Login
+        MockURLProtocol.reset()
+        MockURLProtocol.requestHandler = { request in
+            let httpResponse = HTTPURLResponse(url: request.url!, statusCode: 429, httpVersion: nil, headerFields: nil)!
+            return (httpResponse, Data())
+        }
+        
+        let rateLimitResult = await authService.register(username: Self.validUsername, password: Self.validPassword, klasses: [Self.validClass])
+        if case .failure(let error) = rateLimitResult {
+            #expect(error.localizedDescription.contains("in der letzten Minute zu viele Anfragen"))
+        } else {
+            Issue.record("Login mit 429 hätte fehlschlagen müssen")
+        }
     }
     
     // MARK: - 3. Selbstheilung bei korruptem Storage beim App-Start

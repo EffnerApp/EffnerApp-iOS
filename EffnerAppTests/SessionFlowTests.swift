@@ -383,4 +383,72 @@ struct SessionFlowTests {
         #expect(KeyChainUtil.loadFromKeyChain(serviceName: Constants.bundleIdentifier + ".ssb") == nil, "Nach einem 401 müssen die SSB-Credentials aus dem Keychain gelöscht sein")
         #expect(UserDefaults.standard.stringArray(forKey: "userKlasses") == nil, "Nach einem 401 müssen die userKlasses gelöscht sein")
     }
+    
+    // MARK: - 7. Klassen-Synchronisation (unabhängig vom Push-Status & Self-Healing beim Start)
+    
+    @Test("7. Klassenwechsel synchronisiert immer ans Backend und verifyStoredSession korrigiert Abweichungen")
+    func testClassSyncAlwaysUpdatesBackendAndSelfHealsOnStartup() async throws {
+        let user = User(
+            ssbId: Self.validUUID,
+            ssbToken: Self.validToken,
+            username: Self.validUsername,
+            password: Self.validPassword,
+            klasses: ["5D"],
+            isAuthorized: true
+        )
+        await MainActor.run {
+            NotificationService.shared.isEnabled = false
+            UserSession.shared.user = user
+        }
+        
+        MockURLProtocol.reset()
+        MockURLProtocol.requestHandler = { request in
+            let responseJSON = """
+            {
+                "id": "\(Self.validUUID)",
+                "token": "HIDDEN:non-empty",
+                "deviceToken": null,
+                "classes": ["6D"]
+            }
+            """.data(using: .utf8)!
+            let httpResponse = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (httpResponse, responseJSON)
+        }
+        
+        // A: Klassenwechsel bei deaktivierten Notifications sendet trotzdem PUT /users/{id}/classes
+        await MainActor.run {
+            UserSession.shared.updateUserKlasses(["6D"])
+        }
+        try await Task.sleep(for: .milliseconds(100))
+        
+        let putRequests = MockURLProtocol.capturedRequests.filter {
+            $0.url?.path.hasSuffix("/users/\(Self.validUUID)/classes") == true && $0.httpMethod == "PUT"
+        }
+        #expect(putRequests.count == 1)
+        
+        // B: verifyStoredSession gleicht abweichende Server-Klassen ("5D") automatisch auf lokale Klasse ("6D") ab
+        MockURLProtocol.reset()
+        MockURLProtocol.requestHandler = { request in
+            let classesInResponse = request.httpMethod == "GET" ? "5D" : "6D"
+            let responseJSON = """
+            {
+                "id": "\(Self.validUUID)",
+                "token": "HIDDEN:non-empty",
+                "deviceToken": null,
+                "classes": ["\(classesInResponse)"]
+            }
+            """.data(using: .utf8)!
+            let httpResponse = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (httpResponse, responseJSON)
+        }
+        
+        let updatedUser = try #require(await MainActor.run { UserSession.shared.user })
+        let authService = AuthService(networkManager: makeMockNetworkManager())
+        await UserSession.shared.verifyStoredSession(for: updatedUser, authService: authService)
+        
+        let syncPutRequests = MockURLProtocol.capturedRequests.filter {
+            $0.url?.path.hasSuffix("/users/\(Self.validUUID)/classes") == true && $0.httpMethod == "PUT"
+        }
+        #expect(syncPutRequests.count == 1)
+    }
 }

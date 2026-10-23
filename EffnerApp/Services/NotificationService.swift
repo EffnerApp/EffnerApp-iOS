@@ -16,14 +16,13 @@ class NotificationService: ObservableObject {
     static let shared = NotificationService()
     
     @Published var error: NetworkError?
-    private let networkManager : NetworkManager
+    private var networkManager: NetworkManager { NetworkManager.shared }
 
     @Published var isEnabled: Bool = false
     @Published var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @Published var deviceToken: String? = nil
     
-    private init(networkManager: NetworkManager = NetworkManager.shared) {
-        self.networkManager = networkManager
+    private init() {
         Self.logger.info("Initialized.")
         Task {
             await checkAuthorizationStatus()

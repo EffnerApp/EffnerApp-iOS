@@ -59,6 +59,10 @@ class UserSession: ObservableObject {
             self.user?.isAuthorized = true
             self.user?.deviceToken = response.deviceToken
             
+            if let currentKlasses = self.user?.klasses, !currentKlasses.isEmpty, Set(response.classes) != Set(currentKlasses) {
+                _ = await NotificationService.shared.updateKlasses(klasses: currentKlasses)
+            }
+            
             if let serverToken = response.deviceToken {
                 UserDefaults.standard.set(serverToken, forKey: "userDeviceToken")
                 UserDefaults.standard.set(true, forKey: "notificationsEnabled")
@@ -122,8 +126,8 @@ class UserSession: ObservableObject {
             currentUser.saveKlasses()
             user = currentUser
             
-            Task {
-                if await NotificationService.shared.isEnabled {
+            if Set(oldKlasses) != Set(validKlasses) {
+                Task {
                     _ = await NotificationService.shared.updateKlasses(klasses: validKlasses)
                 }
             }

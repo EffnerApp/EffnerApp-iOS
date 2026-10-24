@@ -49,6 +49,8 @@ enum FeedbackMailHelper {
         Uhrzeit: \(formattedDate)
         ------------------------------------------------------
         """
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .replacingOccurrences(of: "\n", with: "\r\n")
 
         var components = URLComponents()
         components.scheme = "mailto"

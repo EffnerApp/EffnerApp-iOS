@@ -41,6 +41,8 @@ struct FeedbackMailHelperTests {
         #expect(subject?.contains("EffnerApp Feedback") == true)
         
         let unwrappedBody = try #require(body)
+        #expect(unwrappedBody.contains("\r\n"))
+        #expect(url.absoluteString.contains("%0D%0A"))
         #expect(unwrappedBody.contains("User-ID: user-test-id-12345"))
         #expect(unwrappedBody.contains("Klassen: 10a, 11b"))
         #expect(unwrappedBody.contains("App-Version:"))
@@ -60,6 +62,8 @@ struct FeedbackMailHelperTests {
         }
         
         let body = try #require(components.queryItems?.first(where: { $0.name == "body" })?.value)
+        #expect(body.contains("\r\n"))
+        #expect(url.absoluteString.contains("%0D%0A"))
         #expect(body.contains("User-ID: Nicht angemeldet"))
         #expect(body.contains("Klassen: Keine"))
         #expect(body.contains("Status: Nicht angemeldet"))
